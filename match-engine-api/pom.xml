@@ -1,0 +1,42 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.notayessir</groupId>
+        <artifactId>mercury-match-engine</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>match-engine-api</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <ratis.version>3.0.0</ratis.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.ratis</groupId>
+            <artifactId>ratis-metrics-default</artifactId>
+            <version>${ratis.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>ratis-server</artifactId>
+            <groupId>org.apache.ratis</groupId>
+            <version>${ratis.version}</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>ratis-grpc</artifactId>
+            <groupId>org.apache.ratis</groupId>
+            <version>${ratis.version}</version>
+        </dependency>
+    </dependencies>
+</project>
