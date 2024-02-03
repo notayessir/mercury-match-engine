@@ -8,6 +8,19 @@
     </parent>
     <artifactId>match-engine-client</artifactId>
     <packaging>jar</packaging>
+
+
+
     <dependencies>
+
+        <dependency>
+            <groupId>com.notayessir</groupId>
+            <artifactId>match-engine-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
+
+
+
 </project>

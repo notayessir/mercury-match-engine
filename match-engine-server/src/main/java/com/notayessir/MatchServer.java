@@ -1,0 +1,74 @@
+package com.notayessir;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.ratis.conf.RaftProperties;
+import org.apache.ratis.grpc.GrpcConfigKeys;
+import org.apache.ratis.protocol.RaftGroup;
+import org.apache.ratis.protocol.RaftGroupId;
+import org.apache.ratis.protocol.RaftPeer;
+import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.util.NetUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+
+@Slf4j
+public class MatchServer {
+
+    private final RaftServer server;
+
+
+    public MatchServer(MatchServerConfig config) throws IOException {
+        if (Objects.isNull(config)){
+            throw new RuntimeException("nullify config");
+        }
+        config.checkParam();
+
+        List<String> addresses = config.getAddresses();
+        Integer index = config.getIndex();
+        String dirname = config.getDirname();
+        String groupId = config.getGroupId();
+
+        List<RaftPeer> peers = new ArrayList<>();
+        for (int i = 0; i < addresses.size(); i++) {
+            RaftPeer raftPeer = RaftPeer.newBuilder()
+                    .setId("node" + i).setAddress(addresses.get(i)).build();
+            peers.add(raftPeer);
+        }
+        RaftPeer raftPeer = peers.get(index);
+        int port = NetUtils.createSocketAddr(raftPeer.getAddress()).getPort();
+        RaftProperties properties = new RaftProperties();
+        GrpcConfigKeys.Server.setPort(properties, port);
+
+        File storageDir = new File(dirname + File.separator + raftPeer.getId());
+        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(storageDir));
+        RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(properties, true);
+        RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties, 25000);
+
+        MatchStateMachine counterStateMachine = new MatchStateMachine(config.getMatchResultPublisher());
+
+        RaftGroup raftGroup = RaftGroup.valueOf(RaftGroupId.valueOf(UUID.fromString(groupId)), peers);
+        this.server = RaftServer.newBuilder()
+                .setGroup(raftGroup)
+                .setProperties(properties)
+                .setServerId(raftPeer.getId())
+                .setStateMachine(counterStateMachine)
+                .setOption(RaftStorage.StartupOption.RECOVER)
+                .build();
+
+    }
+
+
+    public void start() throws IOException {
+        this.server.start();
+    }
+
+    public void close() throws IOException {
+        this.server.close();
+    }
+
+}

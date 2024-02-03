@@ -17,6 +17,14 @@
 
     <dependencies>
 
+
+
+        <dependency>
+            <groupId>com.notayessir</groupId>
+            <artifactId>match-engine-api</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.roaringbitmap/RoaringBitmap -->
         <dependency>
             <groupId>org.roaringbitmap</groupId>
