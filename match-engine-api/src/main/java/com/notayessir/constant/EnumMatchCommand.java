@@ -4,7 +4,7 @@ package com.notayessir.constant;
 import lombok.Getter;
 
 @Getter
-public enum EnumCommandType {
+public enum EnumMatchCommand {
 
 
 
@@ -16,13 +16,13 @@ public enum EnumCommandType {
 
     private final int code;
 
-    EnumCommandType(int code) {
+    EnumMatchCommand(int code) {
         this.code = code;
     }
 
-    public static EnumCommandType getByCode(int code){
-        EnumCommandType[] values = EnumCommandType.values();
-        for (EnumCommandType value : values) {
+    public static EnumMatchCommand getByCode(int code){
+        EnumMatchCommand[] values = EnumMatchCommand.values();
+        for (EnumMatchCommand value : values) {
             if (value.code == code)
                 return value;
         }

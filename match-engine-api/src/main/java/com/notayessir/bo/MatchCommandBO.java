@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-@Builder
 public class MatchCommandBO implements Serializable {
 
     private static final long serialVersionUID = 20000L;
@@ -18,12 +17,12 @@ public class MatchCommandBO implements Serializable {
     private Integer entrustSide;
 
     /**
-     * entrust unit price
+     * entrust price
      */
     private BigDecimal entrustPrice;
 
     /**
-     * entrust number
+     * entrust qty
      */
     private BigDecimal entrustQty;
 
@@ -33,18 +32,16 @@ public class MatchCommandBO implements Serializable {
 
     private Integer entrustProp;
 
-    protected Long timestamp;
+//    private Long timestamp;
 
-    protected Long coinId;
+    private Long coinId;
 
-    protected Long requestId;
+    private Long requestId;
 
-    protected Long orderId;
+    private Long orderId;
 
     private int quoteScale;
-    protected Integer command;
+    private Integer command;
 
-    protected Long userId;
-    protected Long quoteAccountId;
 
 }

@@ -24,7 +24,7 @@ public class MatchServerConfig {
 
     private String groupId;
 
-    private MatchResultPublisher matchResultPublisher;
+    private Publisher publisher;
 
     public void checkParam() {
         if (StringUtils.isBlank(dirname)){
@@ -33,7 +33,7 @@ public class MatchServerConfig {
         if (Objects.isNull(index)){
             throw new RuntimeException("index isn't provided");
         }
-        if (Objects.isNull(matchResultPublisher)){
+        if (Objects.isNull(publisher)){
             throw new RuntimeException("publisher isn't provided");
         }
         if (CollectionUtil.isEmpty(addresses)){

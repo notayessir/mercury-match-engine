@@ -22,8 +22,8 @@ public class OrderQueueBO extends LinkedHashMap<Long, OrderItemBO> {
     }
 
 
-    public void subtractRemainEntrustNum(BigDecimal num){
-        remainEntrustQty = remainEntrustQty.subtract(num);
+    public void subtractRemainEntrustQty(BigDecimal qty){
+        remainEntrustQty = remainEntrustQty.subtract(qty);
     }
 
 

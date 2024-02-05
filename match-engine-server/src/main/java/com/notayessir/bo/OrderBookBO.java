@@ -1,6 +1,5 @@
 package com.notayessir.bo;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.notayessir.constant.EnumEntrustProp;
 import com.notayessir.constant.EnumEntrustSide;
 import com.notayessir.constant.EnumEntrustType;
@@ -34,12 +33,9 @@ public class OrderBookBO {
         this.txSequence = initSequence;
     }
 
-    public long addAndGetSequence(long value){
-        txSequence += value;
-        return txSequence;
-    }
 
-    private MatchResultBO placeMarketOrder(OrderItemBO takerOrder){
+
+    private MatchCommandResultBO placeMarketOrder(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                 ask : bid;
@@ -58,16 +54,15 @@ public class OrderBookBO {
                 OrderItemBO makerOrder = orderEntry.getValue();
 
                 // do trade
-                MatchItemBO matchItemBO = trade(takerOrder, makerOrder);
-                if (Objects.nonNull(matchItemBO)){
-                    orderQueue.subtractRemainEntrustNum(matchItemBO.getClinchQty());
+                MatchItemBO matchItemBO = match(takerOrder, makerOrder);
+                if (matchItemBO.isMatch()){
+                    orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
                 } else {
                     break BREAKPOINT;
                 }
 
                 // remove the market order if filled
-                if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
-                    makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+                if (makerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
                     orderQueueIterator.remove();
                 }
 
@@ -85,14 +80,13 @@ public class OrderBookBO {
             takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
         }
 
-        return MatchResultBO.builder()
+        return MatchCommandResultBO.builder()
                 .trades(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    private MatchResultBO placeNormalLimitOrder(OrderItemBO takerOrder){
-        OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
-                ask : bid;
+    private MatchCommandResultBO placeNormalLimitOrder(OrderItemBO takerOrder){
+        OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? ask : bid;
         Set<Map.Entry<BigDecimal, OrderQueueBO>> priceMap = priceDepth.entrySet();
         Iterator<Map.Entry<BigDecimal, OrderQueueBO>> priceMapIterator = priceMap.iterator();
         List<MatchItemBO> trades = new ArrayList<>(8);
@@ -112,21 +106,24 @@ public class OrderBookBO {
                 Map.Entry<Long, OrderItemBO> orderEntry = orderQueueIterator.next();
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
-                MatchItemBO matchItemBO = trade(takerOrder, makerOrder);
-                if (Objects.nonNull(matchItemBO)){
-                    orderQueue.subtractRemainEntrustNum(matchItemBO.getClinchQty());
+                MatchItemBO matchItemBO = match(takerOrder, makerOrder);
+                if (matchItemBO.isMatch()){
+                    orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
                 } else {
                     break BREAKPOINT;
                 }
 
+                matchItemBO.setSequence(seq++);
+                trades.add(matchItemBO);
+
                 // remove the market order if filled
-                if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
-                    makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+                if (makerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
                     orderQueueIterator.remove();
                 }
 
-                matchItemBO.setSequence(seq++);
-                trades.add(matchItemBO);
+                if (takerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
+                    break;
+                }
             }
 
             // no more order, remove queue
@@ -138,20 +135,19 @@ public class OrderBookBO {
         if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0) {
             takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
         } else {
-            if (takerOrder.getRemainEntrustQty().compareTo(takerOrder.getEntrustQty()) == 0) {
-                takerOrder.setMatchStatus(EnumMatchStatus.OPEN.getStatus());
-            }
+            takerOrder.setMatchStatus(EnumMatchStatus.OPEN.getStatus());
+            priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? bid : ask;
             priceDepth.addOrder(takerOrder);
             orders.put(takerOrder.getOrderId(), takerOrder);
         }
 
-        return MatchResultBO.builder()
+        return MatchCommandResultBO.builder()
                 .trades(trades).takerOrder(takerOrder)
                 .build();
 
     }
 
-    private MatchResultBO placePremiumLimitOrderOfIOC(OrderItemBO takerOrder){
+    private MatchCommandResultBO placePremiumLimitOrderOfIOC(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                 ask : bid;
@@ -174,21 +170,24 @@ public class OrderBookBO {
                 Map.Entry<Long, OrderItemBO> orderEntry = orderQueueIterator.next();
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
-                MatchItemBO matchItemBO = trade(takerOrder, makerOrder);
-                if (Objects.nonNull(matchItemBO)){
-                    orderQueue.subtractRemainEntrustNum(matchItemBO.getClinchQty());
+                MatchItemBO matchItemBO = match(takerOrder, makerOrder);
+                if (matchItemBO.isMatch()){
+                    orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
                 } else {
                     break BREAKPOINT;
                 }
 
+                matchItemBO.setSequence(seq++);
+                trades.add(matchItemBO);
+
                 // remove the market order if filled
-                if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
-                    makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+                if (makerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
                     orderQueueIterator.remove();
                 }
 
-                matchItemBO.setSequence(seq++);
-                trades.add(matchItemBO);
+                if (takerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
+                    break;
+                }
             }
 
             // no more order, remove queue
@@ -197,12 +196,12 @@ public class OrderBookBO {
             }
         }
         takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
-        return MatchResultBO.builder()
+        return MatchCommandResultBO.builder()
                 .trades(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    private MatchResultBO placePremiumLimitOrderOfFOK(OrderItemBO takerOrder){
+    private MatchCommandResultBO placePremiumLimitOrderOfFOK(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                         ask : bid;
@@ -229,21 +228,25 @@ public class OrderBookBO {
                 Map.Entry<Long, OrderItemBO> orderEntry = orderQueueIterator.next();
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
-                MatchItemBO matchItemBO = trade(takerOrder, makerOrder);
-                if (Objects.nonNull(matchItemBO)){
-                    orderQueue.subtractRemainEntrustNum(matchItemBO.getClinchQty());
+                MatchItemBO matchItemBO = match(takerOrder, makerOrder);
+                if (matchItemBO.isMatch()){
+                    orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
                 } else {
                     break BREAKPOINT;
                 }
 
+                matchItemBO.setSequence(seq++);
+                trades.add(matchItemBO);
+
                 // remove the market order if filled
-                if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
-                    makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+                if (makerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
                     orderQueueIterator.remove();
                 }
 
-                matchItemBO.setSequence(seq++);
-                trades.add(matchItemBO);
+                if (takerOrder.getMatchStatus() == EnumMatchStatus.FILLED.getStatus()){
+                    break;
+                }
+
             }
 
             // no more order, remove queue
@@ -252,92 +255,79 @@ public class OrderBookBO {
             }
         }
         takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
-        return MatchResultBO.builder()
+        return MatchCommandResultBO.builder()
                 .trades(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    public MatchResultBO place(OrderItemBO takerOrder) {
-        MatchResultBO event;
+    public MatchCommandResultBO place(OrderItemBO takerOrder) {
+        MatchCommandResultBO resultBO;
         Integer entrustType = takerOrder.getEntrustType();
-        if (entrustType.equals(EnumEntrustType.NORMAL_LIMIT.getType())){
+        if (entrustType == EnumEntrustType.NORMAL_LIMIT.getType()){
 
-            event = placeNormalLimitOrder(takerOrder);
-        } else if (entrustType.equals(EnumEntrustType.PREMIUM_LIMIT.getType())){
+            resultBO = placeNormalLimitOrder(takerOrder);
+        } else if (entrustType == EnumEntrustType.PREMIUM_LIMIT.getType()){
             if (takerOrder.getEntrustProp().equals(EnumEntrustProp.FOK.getType())){
 
-                event = placePremiumLimitOrderOfFOK(takerOrder);
+                resultBO = placePremiumLimitOrderOfFOK(takerOrder);
             } else {
 
                 // IOC
-                event = placePremiumLimitOrderOfIOC(takerOrder);
+                resultBO = placePremiumLimitOrderOfIOC(takerOrder);
             }
         } else {
 
             // default entrustType: market order
-            event = placeMarketOrder(takerOrder);
+            resultBO = placeMarketOrder(takerOrder);
         }
-
-        BigDecimal totalClinchNum = BigDecimal.ZERO;
-        BigDecimal totalClinchTotalBalance = BigDecimal.ZERO;
-        List<MatchItemBO> trades = event.getTrades();
-        if (!CollectionUtil.isEmpty(trades)){
-            for (MatchItemBO trade : trades) {
-                totalClinchNum = totalClinchNum.add(trade.getClinchQty());
-                totalClinchTotalBalance = totalClinchTotalBalance.add(trade.getClinchAmount());
-            }
-        }
-
-        return event;
+        resultBO.setTxSequence(++txSequence);
+        resultBO.setSuccess(true);
+        return resultBO;
 
 
     }
 
 
-    private MatchItemBO trade(OrderItemBO takerOrder, OrderItemBO makerOrder) {
-        BigDecimal marketOrderPrice = makerOrder.getEntrustPrice();
-        BigDecimal takerNum;
+    private MatchItemBO match(OrderItemBO takerOrder, OrderItemBO makerOrder) {
+        BigDecimal makerEntrustPrice = makerOrder.getEntrustPrice();
+        int quoteScale = takerOrder.getQuoteScale();
+        BigDecimal clinchQty;
         if (takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()
                 && takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType()){
-
-            takerNum = takerOrder.getRemainEntrustAmount().divide(marketOrderPrice, takerOrder.getQuoteScale(), RoundingMode.DOWN);
-
+            clinchQty = takerOrder.getRemainEntrustAmount().divide(makerEntrustPrice, quoteScale, RoundingMode.DOWN);
         } else {
-
-            takerNum = takerOrder.getRemainEntrustQty();
-
+            clinchQty = takerOrder.getRemainEntrustQty();
         }
 
-        if (takerNum.compareTo(BigDecimal.ZERO) == 0) {
-            return null;
+        if (clinchQty.compareTo(BigDecimal.ZERO) == 0) {
+            return new MatchItemBO();
         }
 
-        // minimum of trade number
-        BigDecimal clinchNum = takerNum.min(makerOrder.getRemainEntrustQty());
-        takerOrder.setRemainEntrustQty(takerOrder.getRemainEntrustQty().subtract(clinchNum));
-        makerOrder.setRemainEntrustQty(makerOrder.getRemainEntrustQty().subtract(clinchNum));
+        // minimum of clinch qty
+        clinchQty = clinchQty.min(makerOrder.getRemainEntrustQty());
+        takerOrder.setRemainEntrustQty(takerOrder.getRemainEntrustQty().subtract(clinchQty));
+        makerOrder.setRemainEntrustQty(makerOrder.getRemainEntrustQty().subtract(clinchQty));
 
-        // calc trade balance
-        BigDecimal clinchTotalBalance = clinchNum.multiply(marketOrderPrice);
+        // calc clinch amount
+        BigDecimal clinchAmount = clinchQty.multiply(makerEntrustPrice);
         if (takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()) {
-            takerOrder.setRemainEntrustAmount(takerOrder.getRemainEntrustAmount().subtract(clinchTotalBalance));
+            takerOrder.setRemainEntrustAmount(takerOrder.getRemainEntrustAmount().subtract(clinchAmount));
         } else {
-            makerOrder.setRemainEntrustAmount(makerOrder.getRemainEntrustAmount().subtract(clinchTotalBalance));
+            makerOrder.setRemainEntrustAmount(makerOrder.getRemainEntrustAmount().subtract(clinchAmount));
         }
 
-//        if (makerOrder.getRemainEntrustNum().compareTo(BigDecimal.ZERO) == 0){
-//            makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
-//        }
-//        if (takerOrder.getRemainEntrustNum().compareTo(BigDecimal.ZERO) == 0) {
-//            takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
-//        }
+        if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
+            makerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+        }
+        if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0) {
+            takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+        }
 
         MatchItemBO matchItemBO = new MatchItemBO();
-        matchItemBO.setProductId(takerOrder.getProductId());
-        matchItemBO.setClinchQty(clinchNum);
-        matchItemBO.setClinchAmount(clinchTotalBalance);
+        matchItemBO.setClinchQty(clinchQty);
+        matchItemBO.setClinchAmount(clinchAmount);
         matchItemBO.setMakerOrder(makerOrder);
-        matchItemBO.setTimestamp(System.currentTimeMillis());
+        matchItemBO.setMatch(true);
         return matchItemBO;
     }
 
@@ -356,22 +346,21 @@ public class OrderBookBO {
     }
 
 
-    public MatchResultBO cancel(Long orderId) {
+    public MatchCommandResultBO cancel(Long orderId) {
         OrderItemBO orderItemBO = orders.remove(orderId);
         if (Objects.isNull(orderItemBO)){
-            return MatchResultBO.builder().build();
+            return MatchCommandResultBO.builder().build();
         }
 
         // cancel is same direction
-        OrderTreemapBO depth = orderItemBO.getEntrustSide()
-                == EnumEntrustSide.BUY.getCode() ?
-                bid : ask;
+        OrderTreemapBO depth = orderItemBO.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? bid : ask;
         depth.removeOrder(orderItemBO);
-
         orderItemBO.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
-        return MatchResultBO.builder()
-                .takerOrder(orderItemBO)
+
+        return MatchCommandResultBO.builder()
+                .takerOrder(orderItemBO).success(true).txSequence(++txSequence)
                 .build();
+
     }
 
 

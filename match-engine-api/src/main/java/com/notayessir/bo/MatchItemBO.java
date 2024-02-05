@@ -10,12 +10,12 @@ import java.math.BigDecimal;
 @Setter
 public class MatchItemBO {
 
+    private transient boolean match;
+
     private BigDecimal clinchQty;
     private BigDecimal clinchAmount;
 
     private Long sequence;
-    private Long productId;
-    private Long timestamp;
 
     private OrderItemBO makerOrder;
 

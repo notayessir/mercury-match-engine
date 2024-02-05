@@ -16,8 +16,11 @@ public class OrderTreemapBO extends TreeMap<BigDecimal, OrderQueueBO> {
         OrderQueueBO queue = get(order.getEntrustPrice());
         if (Objects.isNull(queue)){
             queue = new OrderQueueBO();
+            queue.addOrder(order);
+            put(order.getEntrustPrice(), queue);
+        } else {
+            queue.addOrder(order);
         }
-        queue.addOrder(order);
     }
 
     public void removeOrder(OrderItemBO order) {

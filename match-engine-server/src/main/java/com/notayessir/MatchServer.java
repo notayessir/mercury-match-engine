@@ -1,5 +1,6 @@
 package com.notayessir;
 
+import com.notayessir.publisher.LogPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcConfigKeys;
@@ -49,7 +50,7 @@ public class MatchServer {
         RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(properties, true);
         RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties, 25000);
 
-        MatchStateMachine counterStateMachine = new MatchStateMachine(config.getMatchResultPublisher());
+        MatchStateMachine counterStateMachine = new MatchStateMachine(config.getPublisher());
 
         RaftGroup raftGroup = RaftGroup.valueOf(RaftGroupId.valueOf(UUID.fromString(groupId)), peers);
         this.server = RaftServer.newBuilder()
@@ -69,6 +70,23 @@ public class MatchServer {
 
     public void close() throws IOException {
         this.server.close();
+    }
+
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        String groupId = "02511d47-d67c-49a3-9011-abb3109a44c1";
+        List<String> addresses = Arrays.asList("127.0.0.1:18080","127.0.0.1:18081","127.0.0.1:18082");
+        String dirname = "/Users/geek/IdeaProjects/mercury-match-engine/match-engine-server/src/main/dir";
+        for (int i = 0; i < 3; i++) {
+            MatchServerConfig config = MatchServerConfig.builder()
+                    .addresses(addresses).dirname(dirname).groupId(groupId).index(i)
+                    .publisher(new LogPublisher())
+                    .build();
+            MatchServer matchServer = new MatchServer(config);
+            matchServer.start();
+        }
+        Thread.sleep(1000 * 60 * 24);
+
     }
 
 }

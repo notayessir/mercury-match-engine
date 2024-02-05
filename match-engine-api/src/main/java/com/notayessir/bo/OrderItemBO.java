@@ -1,15 +1,19 @@
 package com.notayessir.bo;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderItemBO {
 
-    private Long productId;
+    private Long coinId;
 
     /**
      * order id
@@ -41,17 +45,15 @@ public class OrderItemBO {
     private Integer entrustProp;
 
 
-    private Long timestamp;
+//    private Long timestamp;
 
     private BigDecimal remainEntrustQty;
     private BigDecimal remainEntrustAmount;
 
 
-    private int quoteScale;
+    private Integer quoteScale;
 
-    private int matchStatus;
-
-    private Long userId;
+    private Integer matchStatus;
 
 
 

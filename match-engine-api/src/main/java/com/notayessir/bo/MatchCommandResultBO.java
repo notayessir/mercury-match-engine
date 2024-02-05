@@ -1,8 +1,6 @@
 package com.notayessir.bo;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,9 +8,13 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class MatchResultBO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class MatchCommandResultBO {
 
-    private long globalSequence;
+    private transient boolean success;
+
+//    private long globalSequence;
 
     private long txSequence;
 
@@ -20,9 +22,9 @@ public class MatchResultBO {
 
     private OrderItemBO takerOrder;
 
-    private BigDecimal totalClinchNum;
+//    private BigDecimal totalClinchNum;
 
-    private BigDecimal totalClinchTotalBalance;
+//    private BigDecimal totalClinchTotalBalance;
 
     private List<MatchItemBO> trades;
 

@@ -1,14 +1,17 @@
 package com.notayessir;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.notayessir.bo.MatchResultBO;
+import com.notayessir.bo.MatchCommandBO;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcFactory;
 import org.apache.ratis.protocol.*;
+import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -50,15 +53,24 @@ public class MatchClient {
     }
 
 
-    public CompletableFuture<RaftClientReply> sendAsync(MatchResultBO command) {
+    public CompletableFuture<RaftClientReply> sendAsync(MatchCommandBO command) {
         Message message = Message.valueOf(JSONObject.toJSONString(command));
         return client.async().send(message);
 
     }
 
-    public RaftClientReply sendSync(MatchResultBO command) throws Exception{
+    public Long sendSync(MatchCommandBO command) throws Exception{
         Message message = Message.valueOf(JSONObject.toJSONString(command));
-        return client.io().send(message);
+        RaftClientReply reply = client.io().send(message);
+        return Long.parseLong(unwrap(reply));
+    }
+
+    private String unwrap(RaftClientReply reply){
+        ByteString resp = reply.getMessage().getContent();
+        ByteBuffer buffer = resp.asReadOnlyByteBuffer();
+        byte[] byteArray = new byte[buffer.remaining()];
+        buffer.get(byteArray);
+        return new String(byteArray);
     }
 
     public void close() throws IOException {
