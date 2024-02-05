@@ -76,7 +76,7 @@ public class MatchServer {
     public static void main(String[] args) throws IOException, InterruptedException {
         String groupId = "02511d47-d67c-49a3-9011-abb3109a44c1";
         List<String> addresses = Arrays.asList("127.0.0.1:18080","127.0.0.1:18081","127.0.0.1:18082");
-        String dirname = "/Users/geek/IdeaProjects/mercury-match-engine/match-engine-server/src/main/dir";
+        String dirname = "/Users/geek/IdeaProjects/mercury-match-engine/dir";
         for (int i = 0; i < 3; i++) {
             MatchServerConfig config = MatchServerConfig.builder()
                     .addresses(addresses).dirname(dirname).groupId(groupId).index(i)

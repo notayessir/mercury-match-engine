@@ -5,15 +5,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderItemBO {
+public class OrderItemBO implements Serializable {
 
-    private Long coinId;
+
+    @Serial
+    private static final long serialVersionUID = 1489819214314889774L;
+//    private Long coinId;
 
     /**
      * order id
@@ -42,7 +47,7 @@ public class OrderItemBO {
      */
     private Integer entrustType;
 
-    private Integer entrustProp;
+//    private Integer entrustProp;
 
 
 //    private Long timestamp;

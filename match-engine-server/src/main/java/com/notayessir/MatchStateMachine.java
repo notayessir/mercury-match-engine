@@ -270,7 +270,7 @@ public class MatchStateMachine extends BaseStateMachine {
         bitmap.addLong(command.getRequestId());
 
         // do match
-        MatchCommandResultBO resultBO = match(command);
+        MatchResultBO resultBO = match(command);
 
         // must update index once state machine is updated
         updateLastAppliedTermIndex(termIndex);
@@ -283,21 +283,21 @@ public class MatchStateMachine extends BaseStateMachine {
     }
 
 
-    private MatchCommandResultBO match(MatchCommandBO command) {
+    private MatchResultBO match(MatchCommandBO command) {
         OrderBookBO orderBookBO = orderBooks.get(command.getCoinId());
         if (Objects.isNull(orderBookBO)){
             orderBookBO = new OrderBookBO(0L);
             orderBooks.put(command.getCoinId(), orderBookBO);
         }
 
-        MatchCommandResultBO resultBO;
+        MatchResultBO resultBO;
         if (command.getCommand() == EnumMatchCommand.CANCEL.getCode()){
             // CANCEL
             resultBO = orderBookBO.cancel(command.getOrderId());
         } else {
             // PLACE
-            OrderItemBO matchOrderBO = buildPlaceOrder(command);
-            resultBO = orderBookBO.place(matchOrderBO);
+//            OrderItemBO matchOrderBO = buildPlaceOrder(command);
+            resultBO = orderBookBO.place(command);
         }
         resultBO.setGlobalSequence(++globalSequence);
         resultBO.setCommandType(command.getCommand());
@@ -309,22 +309,6 @@ public class MatchStateMachine extends BaseStateMachine {
 
 
 
-    private OrderItemBO buildPlaceOrder(MatchCommandBO commandBO) {
-        OrderItemBO matchOrderBO = new OrderItemBO();
 
-        matchOrderBO.setCoinId(commandBO.getCoinId());
-        matchOrderBO.setOrderId(commandBO.getOrderId());
-        matchOrderBO.setEntrustType(commandBO.getEntrustType());
-        matchOrderBO.setEntrustProp(commandBO.getEntrustProp());
-        matchOrderBO.setEntrustSide(commandBO.getEntrustSide());
-        matchOrderBO.setEntrustPrice(commandBO.getEntrustPrice());
-        matchOrderBO.setEntrustQty(commandBO.getEntrustQty());
-        matchOrderBO.setEntrustAmount(commandBO.getEntrustAmount());
-
-        matchOrderBO.setRemainEntrustQty(commandBO.getEntrustQty());
-        matchOrderBO.setRemainEntrustAmount(commandBO.getEntrustAmount());
-        matchOrderBO.setQuoteScale(commandBO.getQuoteScale());
-        return matchOrderBO;
-    }
 
 }

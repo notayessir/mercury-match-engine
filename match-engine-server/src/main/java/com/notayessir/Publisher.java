@@ -1,12 +1,12 @@
 package com.notayessir;
 
 
-import com.notayessir.bo.MatchCommandResultBO;
+import com.notayessir.bo.MatchResultBO;
 
 public interface Publisher {
 
 
-    void publish(MatchCommandResultBO matchCommandResultBO);
+    void publish(MatchResultBO matchResultBO);
 
 
 }

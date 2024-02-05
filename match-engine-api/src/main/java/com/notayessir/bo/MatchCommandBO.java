@@ -1,19 +1,24 @@
 package com.notayessir.bo;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class MatchCommandBO implements Serializable {
 
-    private static final long serialVersionUID = 20000L;
 
+    @Serial
+    private static final long serialVersionUID = 3447953295099318138L;
     private Integer entrustSide;
 
     /**
@@ -31,8 +36,6 @@ public class MatchCommandBO implements Serializable {
     private Integer entrustType;
 
     private Integer entrustProp;
-
-//    private Long timestamp;
 
     private Long coinId;
 

@@ -6,15 +6,19 @@ import com.notayessir.constant.EnumEntrustType;
 import com.notayessir.constant.EnumMatchStatus;
 import lombok.Getter;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
 
 @Getter
-public class OrderBookBO {
+public class OrderBookBO implements Serializable {
 
 
+    @Serial
+    private static final long serialVersionUID = 3831714965938884709L;
     private Long txSequence ;
 
     /**
@@ -35,7 +39,7 @@ public class OrderBookBO {
 
 
 
-    private MatchCommandResultBO placeMarketOrder(OrderItemBO takerOrder){
+    private MatchResultBO placeMarketOrder(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                 ask : bid;
@@ -80,12 +84,12 @@ public class OrderBookBO {
             takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
         }
 
-        return MatchCommandResultBO.builder()
-                .trades(trades).takerOrder(takerOrder)
+        return MatchResultBO.builder()
+                .matchItems(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    private MatchCommandResultBO placeNormalLimitOrder(OrderItemBO takerOrder){
+    private MatchResultBO placeNormalLimitOrder(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? ask : bid;
         Set<Map.Entry<BigDecimal, OrderQueueBO>> priceMap = priceDepth.entrySet();
         Iterator<Map.Entry<BigDecimal, OrderQueueBO>> priceMapIterator = priceMap.iterator();
@@ -141,13 +145,13 @@ public class OrderBookBO {
             orders.put(takerOrder.getOrderId(), takerOrder);
         }
 
-        return MatchCommandResultBO.builder()
-                .trades(trades).takerOrder(takerOrder)
+        return MatchResultBO.builder()
+                .matchItems(trades).takerOrder(takerOrder)
                 .build();
 
     }
 
-    private MatchCommandResultBO placePremiumLimitOrderOfIOC(OrderItemBO takerOrder){
+    private MatchResultBO placePremiumLimitOrderOfIOC(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                 ask : bid;
@@ -196,12 +200,12 @@ public class OrderBookBO {
             }
         }
         takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
-        return MatchCommandResultBO.builder()
-                .trades(trades).takerOrder(takerOrder)
+        return MatchResultBO.builder()
+                .matchItems(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    private MatchCommandResultBO placePremiumLimitOrderOfFOK(OrderItemBO takerOrder){
+    private MatchResultBO placePremiumLimitOrderOfFOK(OrderItemBO takerOrder){
         OrderTreemapBO priceDepth =
                 takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
                         ask : bid;
@@ -255,30 +259,48 @@ public class OrderBookBO {
             }
         }
         takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
-        return MatchCommandResultBO.builder()
-                .trades(trades).takerOrder(takerOrder)
+        return MatchResultBO.builder()
+                .matchItems(trades).takerOrder(takerOrder)
                 .build();
     }
 
-    public MatchCommandResultBO place(OrderItemBO takerOrder) {
-        MatchCommandResultBO resultBO;
-        Integer entrustType = takerOrder.getEntrustType();
+    private OrderItemBO buildOrderItem(MatchCommandBO commandBO) {
+        OrderItemBO orderItemBO = new OrderItemBO();
+
+        orderItemBO.setOrderId(commandBO.getOrderId());
+        orderItemBO.setEntrustType(commandBO.getEntrustType());
+        orderItemBO.setEntrustSide(commandBO.getEntrustSide());
+        orderItemBO.setEntrustPrice(commandBO.getEntrustPrice());
+        orderItemBO.setEntrustQty(commandBO.getEntrustQty());
+        orderItemBO.setEntrustAmount(commandBO.getEntrustAmount());
+        orderItemBO.setMatchStatus(EnumMatchStatus.OPEN.getStatus());
+        orderItemBO.setRemainEntrustQty(commandBO.getEntrustQty());
+        orderItemBO.setRemainEntrustAmount(commandBO.getEntrustAmount());
+        orderItemBO.setQuoteScale(commandBO.getQuoteScale());
+        return orderItemBO;
+    }
+
+    public MatchResultBO place(MatchCommandBO command) {
+        MatchResultBO resultBO;
+        OrderItemBO order = buildOrderItem(command);
+        Integer entrustType = command.getEntrustType();
+        Integer entrustProp = command.getEntrustProp();
         if (entrustType == EnumEntrustType.NORMAL_LIMIT.getType()){
 
-            resultBO = placeNormalLimitOrder(takerOrder);
+            resultBO = placeNormalLimitOrder(order);
         } else if (entrustType == EnumEntrustType.PREMIUM_LIMIT.getType()){
-            if (takerOrder.getEntrustProp().equals(EnumEntrustProp.FOK.getType())){
+            if (entrustProp == EnumEntrustProp.FOK.getType()){
 
-                resultBO = placePremiumLimitOrderOfFOK(takerOrder);
+                resultBO = placePremiumLimitOrderOfFOK(order);
             } else {
 
                 // IOC
-                resultBO = placePremiumLimitOrderOfIOC(takerOrder);
+                resultBO = placePremiumLimitOrderOfIOC(order);
             }
         } else {
 
             // default entrustType: market order
-            resultBO = placeMarketOrder(takerOrder);
+            resultBO = placeMarketOrder(order);
         }
         resultBO.setTxSequence(++txSequence);
         return resultBO;
@@ -326,7 +348,6 @@ public class OrderBookBO {
         matchItemBO.setClinchQty(clinchQty);
         matchItemBO.setClinchAmount(clinchAmount);
         matchItemBO.setMakerOrder(makerOrder);
-        matchItemBO.setMatch(true);
         return matchItemBO;
     }
 
@@ -345,10 +366,10 @@ public class OrderBookBO {
     }
 
 
-    public MatchCommandResultBO cancel(Long orderId) {
+    public MatchResultBO cancel(Long orderId) {
         OrderItemBO orderItemBO = orders.remove(orderId);
         if (Objects.isNull(orderItemBO)){
-            return MatchCommandResultBO.builder().build();
+            return MatchResultBO.builder().build();
         }
 
         // cancel is same direction
@@ -356,7 +377,7 @@ public class OrderBookBO {
         depth.removeOrder(orderItemBO);
         orderItemBO.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
 
-        return MatchCommandResultBO.builder()
+        return MatchResultBO.builder()
                 .takerOrder(orderItemBO).txSequence(++txSequence)
                 .build();
 
