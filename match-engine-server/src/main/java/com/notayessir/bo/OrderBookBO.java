@@ -15,7 +15,7 @@ import java.util.*;
 public class OrderBookBO {
 
 
-    private long txSequence ;
+    private Long txSequence ;
 
     /**
      * order to sell
@@ -29,7 +29,7 @@ public class OrderBookBO {
 
     private final Map<Long, OrderItemBO> orders = new HashMap<>();
 
-    public OrderBookBO(long initSequence) {
+    public OrderBookBO(Long initSequence) {
         this.txSequence = initSequence;
     }
 
@@ -281,7 +281,6 @@ public class OrderBookBO {
             resultBO = placeMarketOrder(takerOrder);
         }
         resultBO.setTxSequence(++txSequence);
-        resultBO.setSuccess(true);
         return resultBO;
 
 
@@ -358,7 +357,7 @@ public class OrderBookBO {
         orderItemBO.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
 
         return MatchCommandResultBO.builder()
-                .takerOrder(orderItemBO).success(true).txSequence(++txSequence)
+                .takerOrder(orderItemBO).txSequence(++txSequence)
                 .build();
 
     }

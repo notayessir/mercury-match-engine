@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSONB;
 import com.alibaba.fastjson2.JSONObject;
 import com.notayessir.bo.*;
 import com.notayessir.constant.EnumMatchCommand;
-import com.notayessir.constant.EnumMatchStatus;
+import com.notayessir.constant.EnumMatchResp;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
@@ -44,7 +44,7 @@ public class MatchStateMachine extends BaseStateMachine {
 
     private LongBitmapDataProvider bitmap = new Roaring64NavigableMap();
 
-//    private long globalSequence = 0;
+    private Long globalSequence = 0L;
 
     private final Publisher publisher;
 
@@ -53,18 +53,19 @@ public class MatchStateMachine extends BaseStateMachine {
     }
 
 
-    public record MatchState(Map<Long, OrderBookBO> orderBooks, LongBitmapDataProvider bitmap) {}
+    public record MatchState(Map<Long, OrderBookBO> orderBooks, LongBitmapDataProvider bitmap, Long globalSequence) {}
 
 
     private synchronized MatchState getState(){
-        return new MatchState(orderBooks, bitmap);
+        return new MatchState(orderBooks, bitmap, globalSequence);
     }
 
-    private synchronized void updateState(Map<Long, OrderBookBO> orderBooks, LongBitmapDataProvider bitmap) {
+    private synchronized void updateState(Map<Long, OrderBookBO> orderBooks, LongBitmapDataProvider bitmap, Long globalSequence) {
         this.orderBooks.clear();
         this.orderBooks.putAll(orderBooks);
 
         this.bitmap = bitmap;
+        this.globalSequence = globalSequence;
     }
 
 
@@ -109,7 +110,7 @@ public class MatchStateMachine extends BaseStateMachine {
         try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(snapshotPath)))) {
             setLastAppliedTermIndex(last);
 
-//            long sequence = in.readLong();
+            long sequence = in.readLong();
             int len = in.readInt();
             byte[] bytes = in.readNBytes(len);
             LongBitmapDataProvider bitmap = JSONB.parseObject(bytes, Roaring64NavigableMap.class);
@@ -149,7 +150,7 @@ public class MatchStateMachine extends BaseStateMachine {
             }
 
             //update state
-            updateState(orderBooks, bitmap);
+            updateState(orderBooks, bitmap, sequence);
         }
     }
 
@@ -168,6 +169,8 @@ public class MatchStateMachine extends BaseStateMachine {
         //write the counter value into the snapshot file
         try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(
                 Files.newOutputStream(snapshotFile.toPath())))) {
+
+            out.writeLong(state.globalSequence());
 
             LongBitmapDataProvider bitmap = state.bitmap();
             byte[] b2 = JSONB.toBytes(bitmap);
@@ -262,7 +265,7 @@ public class MatchStateMachine extends BaseStateMachine {
         // check idempotent
         boolean contained = bitmap.contains(command.getRequestId());
         if (contained){
-            return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(-2L)));
+            return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.IDEMPOTENT.getCode())));
         }
         bitmap.addLong(command.getRequestId());
 
@@ -272,22 +275,18 @@ public class MatchStateMachine extends BaseStateMachine {
         // must update index once state machine is updated
         updateLastAppliedTermIndex(termIndex);
 
-        if (!resultBO.isSuccess()){
-            return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(-1L)));
-        }
-
         if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER){
             publisher.publish(resultBO);
         }
         return CompletableFuture
-                .completedFuture(Message.valueOf(String.valueOf(1)));
+                .completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.SUCCESS.getCode())));
     }
 
 
     private MatchCommandResultBO match(MatchCommandBO command) {
         OrderBookBO orderBookBO = orderBooks.get(command.getCoinId());
         if (Objects.isNull(orderBookBO)){
-            orderBookBO = new OrderBookBO(0);
+            orderBookBO = new OrderBookBO(0L);
             orderBooks.put(command.getCoinId(), orderBookBO);
         }
 
@@ -300,7 +299,7 @@ public class MatchStateMachine extends BaseStateMachine {
             OrderItemBO matchOrderBO = buildPlaceOrder(command);
             resultBO = orderBookBO.place(matchOrderBO);
         }
-
+        resultBO.setGlobalSequence(++globalSequence);
         resultBO.setCommandType(command.getCommand());
         resultBO.setTimestamp(System.currentTimeMillis());
         return resultBO;

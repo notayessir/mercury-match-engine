@@ -33,7 +33,7 @@ public class MatchServerTests {
     @Test
     @DisplayName("cancel a not existed order")
     void cancelOrder() {
-        OrderBookBO orderBookBO = new OrderBookBO(0);
+        OrderBookBO orderBookBO = new OrderBookBO(0L);
         MatchCommandResultBO resultBO = orderBookBO.cancel(RandomUtil.randomLong());
         Assumptions.assumeTrue(!resultBO.isSuccess());
     }
@@ -42,7 +42,7 @@ public class MatchServerTests {
     @Test
     @DisplayName("place limit order")
     void placeLimitOrder() {
-        OrderBookBO orderBookBO = new OrderBookBO(0);
+        OrderBookBO orderBookBO = new OrderBookBO(0L);
 
         // makerOrder 1
         BigDecimal entrustPrice1 = BigDecimal.valueOf(20.3);

@@ -88,22 +88,6 @@ public class MatchClientTests {
         }
     }
 
-    @Test
-    @DisplayName("cancelNotExistOrder")
-    void cancelNotExistOrder() throws Exception {
-        Long coinId = 1L;
-        MatchCommandBO commandBO = new MatchCommandBO();
-        commandBO.setCoinId(coinId);
-        commandBO.setCommand(EnumMatchCommand.CANCEL.getCode());
-        for (long i = 0; i < 10; i++) {
-
-            commandBO.setOrderId(RandomUtil.randomLong());
-            commandBO.setRequestId(RandomUtil.randomLong());
-
-            Long id = matchClient.sendSync(commandBO);
-            Assumptions.assumeTrue(-1L == id);
-        }
-    }
 
 
 

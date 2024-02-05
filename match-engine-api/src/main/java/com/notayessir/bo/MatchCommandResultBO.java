@@ -12,11 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 public class MatchCommandResultBO {
 
-    private transient boolean success;
+//    private transient boolean success;
 
-//    private long globalSequence;
+    private Long globalSequence;
 
-    private long txSequence;
+    private Long txSequence;
 
     private Integer commandType;
 
