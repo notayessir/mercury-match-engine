@@ -3,15 +3,14 @@ package com.notayessir;
 import com.alibaba.fastjson2.JSONB;
 import com.alibaba.fastjson2.JSONObject;
 import com.notayessir.bo.*;
+import com.notayessir.constant.EnumExceptionCode;
 import com.notayessir.constant.EnumMatchCommand;
 import com.notayessir.constant.EnumMatchResp;
+import com.notayessir.ex.MatchEngineException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
-import org.apache.ratis.protocol.Message;
-import org.apache.ratis.protocol.RaftGroupId;
-import org.apache.ratis.protocol.RaftGroupMemberId;
-import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.protocol.*;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.storage.FileInfo;
@@ -27,7 +26,6 @@ import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -128,10 +126,10 @@ public class MatchStateMachine extends BaseStateMachine {
                 for (int j = 0; j < queueLen; j++){
                     len = in.readInt();
                     bytes = in.readNBytes(len);
-                    OrderItemBO matchOrderBO = JSONB.parseObject(bytes, OrderItemBO.class);
+                    OrderItemBO order = JSONB.parseObject(bytes, OrderItemBO.class);
 
-                    ask.addOrder(matchOrderBO);
-                    orders.put(matchOrderBO.getOrderId(), matchOrderBO);
+                    ask.addOrder(order);
+                    orders.put(order.getOrderId(), order);
                 }
 
                 // bid
@@ -140,10 +138,10 @@ public class MatchStateMachine extends BaseStateMachine {
                 for (int j = 0; j < queueLen; j++){
                     len = in.readInt();
                     bytes = in.readNBytes(len);
-                    OrderItemBO matchOrderBO = JSONB.parseObject(bytes, OrderItemBO.class);
+                    OrderItemBO order = JSONB.parseObject(bytes, OrderItemBO.class);
 
-                    bid.addOrder(matchOrderBO);
-                    orders.put(matchOrderBO.getOrderId(), matchOrderBO);
+                    bid.addOrder(order);
+                    orders.put(order.getOrderId(), order);
                 }
 
                 orderBooks.put(productId, orderBookBO);
@@ -204,8 +202,8 @@ public class MatchStateMachine extends BaseStateMachine {
                     Set<Map.Entry<Long, OrderItemBO>> orderEntrySet = orderQueueBO.entrySet();
                     for (Map.Entry<Long, OrderItemBO> orderBOEntry : orderEntrySet) {
                         Long orderId = orderBOEntry.getKey();
-                        OrderItemBO matchOrderBO = orderBOEntry.getValue();
-                        bytes = JSONB.toBytes(matchOrderBO);
+                        OrderItemBO order = orderBOEntry.getValue();
+                        bytes = JSONB.toBytes(order);
                         out.writeInt(bytes.length);
                         out.write(bytes);
                     }
@@ -226,8 +224,8 @@ public class MatchStateMachine extends BaseStateMachine {
                     Set<Map.Entry<Long, OrderItemBO>> orderEntrySet = orderQueueBO.entrySet();
                     for (Map.Entry<Long, OrderItemBO> orderBOEntry : orderEntrySet) {
                         Long orderId = orderBOEntry.getKey();
-                        OrderItemBO matchOrderBO = orderBOEntry.getValue();
-                        bytes = JSONB.toBytes(matchOrderBO);
+                        OrderItemBO order = orderBOEntry.getValue();
+                        bytes = JSONB.toBytes(order);
                         out.writeInt(bytes.length);
                         out.write(bytes);
                     }
@@ -254,49 +252,89 @@ public class MatchStateMachine extends BaseStateMachine {
         log.info("leadership, newLeaderId {}", newLeaderId);
     }
 
+    @Override
+    public CompletableFuture<Message> query(Message request) {
+        return super.query(request);
+    }
+
 
     @Override
-    public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        RaftProtos.LogEntryProto entry = trx.getLogEntry();
-        TermIndex termIndex = TermIndex.valueOf(entry);
-        String logData = entry.getStateMachineLogEntry().getLogData().toString(Charset.defaultCharset());
+    public TransactionContext startTransaction(RaftProtos.LogEntryProto entry, RaftProtos.RaftPeerRole role) {
+        // logic below will be invoked at follower and leader
+        return super.startTransaction(entry, role);
+    }
+
+    @Override
+    public TransactionContext startTransaction(RaftClientRequest request) throws IOException {
+        // logic below will not be invoked at follower, but only leader
+        TransactionContext trx = super.startTransaction(request);
+        String logData = request.getMessage().getContent().toStringUtf8();
         MatchCommandBO command = JSONObject.parseObject(logData, MatchCommandBO.class);
+
+        log.debug("role:" + trx.getServerRole() +" command: "+JSONObject.toJSONString(command));
 
         // check idempotent
         boolean contained = bitmap.contains(command.getRequestId());
         if (contained){
-            return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.IDEMPOTENT.getCode())));
+            trx.setException(new MatchEngineException(EnumExceptionCode.IDEMPOTENT));
+            return trx;
         }
+
+        // cancel command should follow place command
+        if (command.getCommand() == EnumMatchCommand.CANCEL.getCode()){
+            OrderBookBO orderBookBO = orderBooks.get(command.getCoinId());
+            if (Objects.isNull(orderBookBO) || !orderBookBO.contains(command.getOrderId())){
+                trx.setException(new MatchEngineException(EnumExceptionCode.COMMAND_DISORDER));
+                return trx;
+            }
+        }
+        trx.setStateMachineContext(command);
+        return trx;
+    }
+
+
+    @Override
+    public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
+        MatchCommandBO command;
+        if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER){
+            command = (MatchCommandBO) trx.getStateMachineContext();
+        } else {
+            RaftProtos.LogEntryProto entry = trx.getLogEntry();
+            String logData = entry.getStateMachineLogEntry().getLogData().toStringUtf8();
+            command = JSONObject.parseObject(logData, MatchCommandBO.class);
+        }
+        RaftProtos.LogEntryProto entry = trx.getLogEntry();
+        TermIndex termIndex = TermIndex.valueOf(entry);
+
+        // save request id
         bitmap.addLong(command.getRequestId());
 
-        // do match
-        MatchResultBO resultBO = match(command);
+        // execute command
+        MatchResultBO resultBO = doCommand(command);
 
         // must update index once state machine is updated
         updateLastAppliedTermIndex(termIndex);
 
         if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER){
+            log.debug("match result: {}", JSONObject.toJSONString(resultBO));
             publisher.publish(resultBO);
         }
-        return CompletableFuture
-                .completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.SUCCESS.getCode())));
+        return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.SUCCESS.getCode())));
     }
 
 
-    private MatchResultBO match(MatchCommandBO command) {
-        OrderBookBO orderBookBO = orderBooks.get(command.getCoinId());
-        if (Objects.isNull(orderBookBO)){
-            orderBookBO = new OrderBookBO(0L);
-            orderBooks.put(command.getCoinId(), orderBookBO);
-        }
-
+    private MatchResultBO doCommand(MatchCommandBO command) {
         MatchResultBO resultBO;
+        OrderBookBO orderBookBO = orderBooks.get(command.getCoinId());
         if (command.getCommand() == EnumMatchCommand.CANCEL.getCode()){
             // CANCEL
             resultBO = orderBookBO.cancel(command.getOrderId());
         } else {
             // PLACE
-//            OrderItemBO matchOrderBO = buildPlaceOrder(command);
+            if (Objects.isNull(orderBookBO)){
+                orderBookBO = new OrderBookBO(0L);
+                orderBooks.put(command.getCoinId(), orderBookBO);
+            }
             resultBO = orderBookBO.place(command);
         }
         resultBO.setGlobalSequence(++globalSequence);

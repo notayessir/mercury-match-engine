@@ -40,9 +40,7 @@ public class OrderBookBO implements Serializable {
 
 
     private MatchResultBO placeMarketOrder(OrderItemBO takerOrder){
-        OrderTreemapBO priceDepth =
-                takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
-                ask : bid;
+        OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? ask : bid;
         Set<Map.Entry<BigDecimal, OrderQueueBO>> priceMap = priceDepth.entrySet();
         Iterator<Map.Entry<BigDecimal, OrderQueueBO>> priceMapIterator = priceMap.iterator();
         List<MatchItemBO> trades = new ArrayList<>(8);
@@ -152,9 +150,7 @@ public class OrderBookBO implements Serializable {
     }
 
     private MatchResultBO placePremiumLimitOrderOfIOC(OrderItemBO takerOrder){
-        OrderTreemapBO priceDepth =
-                takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
-                ask : bid;
+        OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? ask : bid;
         Set<Map.Entry<BigDecimal, OrderQueueBO>> priceMap = priceDepth.entrySet();
         Iterator<Map.Entry<BigDecimal, OrderQueueBO>> priceMapIterator = priceMap.iterator();
         List<MatchItemBO> trades = new ArrayList<>(8);
@@ -206,9 +202,7 @@ public class OrderBookBO implements Serializable {
     }
 
     private MatchResultBO placePremiumLimitOrderOfFOK(OrderItemBO takerOrder){
-        OrderTreemapBO priceDepth =
-                takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ?
-                        ask : bid;
+        OrderTreemapBO priceDepth = takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode() ? ask : bid;
         Set<Map.Entry<BigDecimal, OrderQueueBO>> priceMap = priceDepth.entrySet();
         Iterator<Map.Entry<BigDecimal, OrderQueueBO>> priceMapIterator = priceMap.iterator();
         List<MatchItemBO> trades = new ArrayList<>(8);
@@ -284,22 +278,19 @@ public class OrderBookBO implements Serializable {
         MatchResultBO resultBO;
         OrderItemBO order = buildOrderItem(command);
         Integer entrustType = command.getEntrustType();
-        Integer entrustProp = command.getEntrustProp();
         if (entrustType == EnumEntrustType.NORMAL_LIMIT.getType()){
-
             resultBO = placeNormalLimitOrder(order);
         } else if (entrustType == EnumEntrustType.PREMIUM_LIMIT.getType()){
+            Integer entrustProp = command.getEntrustProp();
             if (entrustProp == EnumEntrustProp.FOK.getType()){
-
+                // FOK
                 resultBO = placePremiumLimitOrderOfFOK(order);
             } else {
-
                 // IOC
                 resultBO = placePremiumLimitOrderOfIOC(order);
             }
         } else {
-
-            // default entrustType: market order
+            // default: market order
             resultBO = placeMarketOrder(order);
         }
         resultBO.setTxSequence(++txSequence);
@@ -313,24 +304,24 @@ public class OrderBookBO implements Serializable {
         BigDecimal makerEntrustPrice = makerOrder.getEntrustPrice();
         int quoteScale = takerOrder.getQuoteScale();
         BigDecimal clinchQty;
-        if (takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()
-                && takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType()){
+
+        if (takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType() && takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()){
             clinchQty = takerOrder.getRemainEntrustAmount().divide(makerEntrustPrice, quoteScale, RoundingMode.DOWN);
         } else {
             clinchQty = takerOrder.getRemainEntrustQty();
         }
-
         if (clinchQty.compareTo(BigDecimal.ZERO) == 0) {
-            return new MatchItemBO();
+            return MatchItemBO.builder().build();
         }
-
         // minimum of clinch qty
         clinchQty = clinchQty.min(makerOrder.getRemainEntrustQty());
+
+
         takerOrder.setRemainEntrustQty(takerOrder.getRemainEntrustQty().subtract(clinchQty));
         makerOrder.setRemainEntrustQty(makerOrder.getRemainEntrustQty().subtract(clinchQty));
 
         // calc clinch amount
-        BigDecimal clinchAmount = clinchQty.multiply(makerEntrustPrice);
+        BigDecimal clinchAmount = clinchQty.multiply(makerEntrustPrice).setScale(quoteScale, RoundingMode.UP);
         if (takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()) {
             takerOrder.setRemainEntrustAmount(takerOrder.getRemainEntrustAmount().subtract(clinchAmount));
         } else {
@@ -344,11 +335,9 @@ public class OrderBookBO implements Serializable {
             takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
         }
 
-        MatchItemBO matchItemBO = new MatchItemBO();
-        matchItemBO.setClinchQty(clinchQty);
-        matchItemBO.setClinchAmount(clinchAmount);
-        matchItemBO.setMakerOrder(makerOrder);
-        return matchItemBO;
+        return MatchItemBO.builder()
+                .clinchAmount(clinchAmount).clinchQty(clinchQty).makerOrder(makerOrder)
+                .build();
     }
 
 

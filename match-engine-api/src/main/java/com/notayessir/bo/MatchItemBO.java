@@ -1,5 +1,6 @@
 package com.notayessir.bo;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@Builder
 public class MatchItemBO implements Serializable {
 
     @Serial

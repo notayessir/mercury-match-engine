@@ -7,10 +7,9 @@ import lombok.Getter;
 public enum EnumMatchResp {
 
 
-    IDEMPOTENT(-2),
-
-
     SUCCESS(1),
+
+
 
             ;
 
