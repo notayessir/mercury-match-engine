@@ -12,14 +12,15 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@Builder
 public class MatchItemBO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -6120849803225177460L;
 
     private BigDecimal clinchQty;
-    private BigDecimal clinchAmount;
+//    private BigDecimal clinchAmount;
+    private BigDecimal clinchPrice;
+
 
     private Long sequence;
 

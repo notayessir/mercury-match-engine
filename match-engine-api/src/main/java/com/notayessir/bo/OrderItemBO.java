@@ -18,7 +18,6 @@ public class OrderItemBO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1489819214314889774L;
-//    private Long coinId;
 
     /**
      * order id
@@ -31,11 +30,16 @@ public class OrderItemBO implements Serializable {
     private BigDecimal entrustPrice;
 
     /**
-     * entrust number
+     * buy by qty
      */
     private BigDecimal entrustQty;
+    private BigDecimal remainEntrustQty;
 
+    /**
+     * buy by amount
+     */
     private BigDecimal entrustAmount;
+    private BigDecimal remainEntrustAmount;
 
     /**
      * sell or buy
@@ -46,14 +50,6 @@ public class OrderItemBO implements Serializable {
      * MARKET,LIMIT...
      */
     private Integer entrustType;
-
-//    private Integer entrustProp;
-
-
-//    private Long timestamp;
-
-    private BigDecimal remainEntrustQty;
-    private BigDecimal remainEntrustAmount;
 
 
     private Integer quoteScale;

@@ -6,18 +6,25 @@ import lombok.Getter;
 @Getter
 public enum EnumMatchStatus {
 
+    /**
+     * cancel order
+     */
+    CANCEL(-20),
 
+    /**
+     *
+     */
+    CLOSE(-10),
+
+    /**
+     * order now in order book
+     */
     OPEN(10),
 
-//    PARTIAL_FILLED(20),
-
-//    PARTIAL_FILLED_CLOSE(30),
-
-//    PARTIAL_FILLED_CANCEL(40),
-
-    FILLED(50),
-
-    CLOSE(60),
+    /**
+     * order fully fill
+     */
+    FILLED(20),
 
     ;
 
