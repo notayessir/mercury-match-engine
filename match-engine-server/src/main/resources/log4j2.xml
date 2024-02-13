@@ -2,25 +2,18 @@
 <Configuration>
 
     <Properties>
-        <!--        <Property name="baseOutput">../log/app.log</Property>-->
-        <Property name="matchOutput">./log/match.log</Property>
+        <Property name="matchOutput">./log/ratis_match_engine.log</Property>
     </Properties>
 
 
     <Appenders>
 
-        <!-- 控制台输出 -->
+        <!-- console -->
         <Console name="ConsoleAppender" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
 
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout>
-                <Pattern>%d %p %c [%t] %m%n</Pattern>
-            </PatternLayout>
-        </Console>
-
-
+        <!-- log file -->
         <RollingRandomAccessFile name="matchRollingFile" fileName="${matchOutput}"
                                  filePattern="${matchOutput}.%d{yyyy-MM-dd}.log.%i">
             <PatternLayout>
@@ -36,7 +29,13 @@
     </Appenders>
 
     <Loggers>
-        <Root level="info">
+
+        <AsyncLogger name="org.apache.ratis" level="info" additivity="false" includeLocation="true">
+            <AppenderRef ref="matchRollingFile"/>
+            <AppenderRef ref="ConsoleAppender"/>
+        </AsyncLogger>
+
+        <Root level="info" includeLocation="true">
             <AppenderRef ref="ConsoleAppender"/>
         </Root>
     </Loggers>
