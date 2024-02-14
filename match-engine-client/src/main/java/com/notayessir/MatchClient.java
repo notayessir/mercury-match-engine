@@ -52,10 +52,13 @@ public class MatchClient {
     }
 
 
-    public CompletableFuture<RaftClientReply> sendAsync(MatchCommandBO command) {
+    public CompletableFuture<Long> sendAsync(MatchCommandBO command) {
         Message message = Message.valueOf(JSONObject.toJSONString(command));
-        return client.async().send(message);
-
+        CompletableFuture<RaftClientReply> origin = client.async().send(message);
+        return origin.thenApply(reply -> {
+            String resp = unwrap(reply);
+            return Long.parseLong(resp);
+        });
     }
 
     public Long sendSync(MatchCommandBO command) throws Exception{

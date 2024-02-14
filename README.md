@@ -1,3 +1,4 @@
+[中文](README.md) | [English](README_EN.md)
 # 介绍
 
 ![process.png](asset%2Fprocess.png)
@@ -21,15 +22,26 @@
 ```
 cd bin
 # 启动 
-sh command.sh binlog-service start
+sh command.sh start
 # 停止
-sh command.sh binlog-service stop
+sh command.sh stop
 ```
 
 引入客户端：
+
 maven：
 ```
 TODO
+```
+
+初始化：
+```
+String groupId = "02511d47-d67c-49a3-9011-abb3109a44c1";  
+List<String> addresses = Arrays.asList("127.0.0.1:18080","127.0.0.1:18081","127.0.0.1:18082");  
+MatchClientConfig config = MatchClientConfig.builder()  
+        .addresses(addresses).groupId(groupId)  
+        .build();  
+MatchClient matchClient = new MatchClient(config);
 ```
 
 放置普通限价单：
@@ -65,6 +77,16 @@ commandBO.setCoinId(coinId);
 commandBO.setOrderId(orderId);  
 commandBO.setRequestId(requestId);  
 matchClient.sendSync(commandBO);
+```
+
+同步请求：
+```
+Long sendSync(MatchCommandBO command) throws Exception
+```
+
+异步请求：
+```
+CompletableFuture<Long> sendAsync(MatchCommandBO command)
 ```
 # 详尽信息
 
@@ -144,15 +166,6 @@ commandBO.setEntrustProp(EnumEntrustProp.FOK.getType());
 matchClient.sendSync(commandBO);
 ```
 
-同步请求：
-```
-Long sendSync(MatchCommandBO command) throws Exception
-```
-
-异步请求：
-```
-CompletableFuture<RaftClientReply> sendAsync(MatchCommandBO command)
-```
 ## 部署建议
 - 根据 Raft 算法，至少 3 个节点组成一个撮合集群，这些节点生产上要部署在不同的机器上；
 - 若标的交易量很大，可以将多个标的分配在不同的撮合集群上，例如撮合集群 A 负责撮合标的 aa,bb，撮合集群 B 负责撮合标的 dd,ee；
