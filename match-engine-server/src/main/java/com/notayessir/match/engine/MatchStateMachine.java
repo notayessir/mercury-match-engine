@@ -1,4 +1,4 @@
-package com.notayessir;
+package com.notayessir.match.engine;
 
 import com.alibaba.fastjson2.JSONB;
 import com.alibaba.fastjson2.JSONObject;
@@ -7,6 +7,7 @@ import com.notayessir.constant.EnumExceptionCode;
 import com.notayessir.constant.EnumMatchCommand;
 import com.notayessir.constant.EnumMatchResp;
 import com.notayessir.ex.MatchEngineException;
+import com.notayessir.match.engine.publisher.Publisher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
@@ -44,10 +45,10 @@ public class MatchStateMachine extends BaseStateMachine {
 
     private Long globalSequence = 0L;
 
-    private final Publisher publisher;
+    private final List<Publisher> publishers;
 
-    public MatchStateMachine(Publisher publisher) {
-        this.publisher = publisher;
+    public MatchStateMachine(List<Publisher> publishers) {
+        this.publishers = publishers;
     }
 
 
@@ -316,10 +317,15 @@ public class MatchStateMachine extends BaseStateMachine {
         updateLastAppliedTermIndex(termIndex);
 
         if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER){
-            log.debug("match result: {}", JSONObject.toJSONString(resultBO));
-            publisher.publish(resultBO);
+            publish(resultBO);
         }
         return CompletableFuture.completedFuture(Message.valueOf(String.valueOf(EnumMatchResp.SUCCESS.getCode())));
+    }
+
+    private void publish(MatchResultBO resultBO) {
+        for (Publisher publisher : publishers) {
+            publisher.publish(resultBO);
+        }
     }
 
 

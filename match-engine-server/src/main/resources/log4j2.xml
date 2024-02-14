@@ -2,7 +2,7 @@
 <Configuration>
 
     <Properties>
-        <Property name="matchOutput">./log/ratis_match_engine.log</Property>
+        <Property name="matchOutput">../log/ratis_match_engine.log</Property>
     </Properties>
 
 

@@ -1,7 +1,8 @@
-package com.notayessir;
+package com.notayessir.match.engine;
 
-import com.notayessir.publisher.LogPublisher;
+import com.notayessir.match.engine.publisher.impl.LogPublisher;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcConfigKeys;
 import org.apache.ratis.protocol.RaftGroup;
@@ -35,9 +36,11 @@ public class MatchServer {
         String groupId = config.getGroupId();
 
         List<RaftPeer> peers = new ArrayList<>();
-        for (int i = 0; i < addresses.size(); i++) {
+        for (String address : addresses) {
+            String nodeName = StringUtils.replace(address, ".", "-");
+            nodeName = StringUtils.replace(nodeName, ":", "-");
             RaftPeer raftPeer = RaftPeer.newBuilder()
-                    .setId("node" + i).setAddress(addresses.get(i)).build();
+                    .setId(nodeName).setAddress(address).build();
             peers.add(raftPeer);
         }
         RaftPeer raftPeer = peers.get(index);
@@ -50,7 +53,7 @@ public class MatchServer {
         RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(properties, true);
         RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties, 25000);
 
-        MatchStateMachine counterStateMachine = new MatchStateMachine(config.getPublisher());
+        MatchStateMachine counterStateMachine = new MatchStateMachine(config.getPublishers());
 
         RaftGroup raftGroup = RaftGroup.valueOf(RaftGroupId.valueOf(UUID.fromString(groupId)), peers);
         this.server = RaftServer.newBuilder()
@@ -80,7 +83,7 @@ public class MatchServer {
         for (int i = 0; i < 3; i++) {
             MatchServerConfig config = MatchServerConfig.builder()
                     .addresses(addresses).dirname(dirname).groupId(groupId).index(i)
-                    .publisher(new LogPublisher())
+                    .publishers(Arrays.asList(new LogPublisher()))
                     .build();
             MatchServer matchServer = new MatchServer(config);
             matchServer.start();
