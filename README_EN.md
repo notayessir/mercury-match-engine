@@ -129,6 +129,49 @@ public class LogPublisher implements Publisher {
     }  
 }
 ```
+
+match result object, MatchResultBO: match engine publishes match result to the destination once command is executed, fields are below:
+```
+{
+  "matchItems":[    // A arr with maker order info
+    {
+      "clinchPrice":20.3,   // clinch price
+      "clinchQty":20,       // clinch quantity
+      "makerOrder":{        // maker order info
+        "entrustAmount":406,    // total entrust amount
+        "entrustPrice":20.3,    // entrust price
+        "entrustQty":20,        // entrust quantity
+        "entrustSide":0,        // order side, 0 sell 1 buy
+        "entrustType":2,        // order type, market, limit, maker order is always limit order
+        "matchStatus":20,       // order status
+        "orderId":1532783699234128978,  // order id
+        "quoteScale":4,                 // bid currency scale
+        "remainEntrustAmount":406,      // to clinch amount
+        "remainEntrustQty":0            // to clinch quantity
+      },
+      "match":true, // always true
+      "sequence":0  // index in matchItems
+    },
+    // more items...
+  ],
+  "takerOrder":{    // taker order info
+    "entrustAmount":609,
+    "entrustPrice":20.3,
+    "entrustQty":30,
+    "entrustSide":1,
+    "entrustType":2,
+    "matchStatus":20,
+    "orderId":6369070926336026940,
+    "quoteScale":4,
+    "remainEntrustAmount":609,
+    "remainEntrustQty":0
+  },
+  "txSequence":5,    // unique id in order book (incremental)
+  "globalSequence": 10,     // unique id in match engine (incremental)
+  "timestamp": 166778687576, // match timestamp
+  "commandType": 20 // command type , 10 means cancel, 20 means place
+}
+```
 ## Client
 #### Place Order
 

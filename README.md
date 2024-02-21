@@ -126,6 +126,49 @@ public class LogPublisher implements Publisher {
     }  
 }
 ```
+
+撮合结果 MatchResultBO：撮合引擎将撮合的结果异步发布到设定的队列中，数据字段信息如下：
+```
+{
+  "matchItems":[    // 成交的 maker 订单和数据，数组 
+    {
+      "clinchPrice":20.3,   // 成交单价
+      "clinchQty":20,       // 成交数量
+      "makerOrder":{        // maker 订单信息
+        "entrustAmount":406,    // 委托总价
+        "entrustPrice":20.3,    // 委托单价
+        "entrustQty":20,        // 委托数量
+        "entrustSide":0,        // 委托方向，0 卖 1 买
+        "entrustType":2,        // 委托订单类型，限价单
+        "matchStatus":20,       // 订单状态
+        "orderId":1532783699234128978,  // 订单 id
+        "quoteScale":4,                 // 出价货币精度
+        "remainEntrustAmount":406,      // 剩余待成交总金额
+        "remainEntrustQty":0            // 剩余待成交数量
+      },
+      "match":true, // 是否成交，冗余字段，均为 true
+      "sequence":0  // 在 matchItems 中的索引
+    },
+    // more items...
+  ],
+  "takerOrder":{    // taker 订单信息
+    "entrustAmount":609,
+    "entrustPrice":20.3,
+    "entrustQty":30,
+    "entrustSide":1,
+    "entrustType":2,
+    "matchStatus":20,
+    "orderId":6369070926336026940,
+    "quoteScale":4,
+    "remainEntrustAmount":609,
+    "remainEntrustQty":0
+  },
+  "txSequence":5,    // 订单簿全局唯一 id（递增）
+  "globalSequence": 10,     // 撮合引擎全局唯一 id（递增）
+  "timestamp": 166778687576, // 撮合时间戳
+  "commandType": 20 // 撮合命令类型，10 cancel，20 place
+}
+```
 ## 客户端
 #### 放置订单
 
