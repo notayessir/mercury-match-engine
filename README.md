@@ -167,6 +167,7 @@ public class LogPublisher implements Publisher {
   "globalSequence": 10,     // 撮合引擎全局唯一 id（递增）
   "timestamp": 166778687576, // 撮合时间戳
   "commandType": 20 // 撮合命令类型，10 cancel，20 place
+  "coinId": 20 // 对应某一标的 id
 }
 ```
 ## 客户端

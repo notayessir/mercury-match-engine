@@ -170,6 +170,7 @@ match result object, MatchResultBO: match engine publishes match result to the d
   "globalSequence": 10,     // unique id in match engine (incremental)
   "timestamp": 166778687576, // match timestamp
   "commandType": 20 // command type , 10 means cancel, 20 means place
+  "coinId": 20 // coin id claim in your database
 }
 ```
 ## Client

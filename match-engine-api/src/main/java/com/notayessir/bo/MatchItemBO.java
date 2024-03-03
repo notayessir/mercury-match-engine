@@ -26,21 +26,6 @@ public class MatchItemBO implements Serializable {
 
     private OrderItemBO makerOrder;
 
-    public boolean isMatch(){
-        return Objects.nonNull(makerOrder);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

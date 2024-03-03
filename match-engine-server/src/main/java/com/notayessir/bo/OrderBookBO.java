@@ -57,7 +57,7 @@ public class OrderBookBO implements Serializable {
 
                 // do trade
                 MatchItemBO matchItemBO = match(takerOrder, makerOrder);
-                if (!matchItemBO.isMatch()){
+                if (Objects.isNull(matchItemBO)){
                     break BREAKPOINT;
                 }
                 orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
@@ -110,7 +110,7 @@ public class OrderBookBO implements Serializable {
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
                 MatchItemBO matchItemBO = match(takerOrder, makerOrder);
-                if (!matchItemBO.isMatch()){
+                if (Objects.isNull(matchItemBO)){
                     break BREAKPOINT;
                 }
                 orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
@@ -167,9 +167,8 @@ public class OrderBookBO implements Serializable {
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
                 MatchItemBO matchItemBO = match(takerOrder, makerOrder);
-                if (!matchItemBO.isMatch()){
+                if (Objects.isNull(matchItemBO)){
                     break BREAKPOINT;
-
                 }
                 orderQueue.subtractRemainEntrustQty(matchItemBO.getClinchQty());
                 matchItemBO.setSequence(seq++);
@@ -224,7 +223,7 @@ public class OrderBookBO implements Serializable {
                 OrderItemBO makerOrder = orderEntry.getValue();
                 // do trade
                 MatchItemBO matchItemBO = match(takerOrder, makerOrder);
-                if (!matchItemBO.isMatch()){
+                if (Objects.isNull(matchItemBO)){
                     break BREAKPOINT;
                 }
 
@@ -310,7 +309,7 @@ public class OrderBookBO implements Serializable {
             clinchQty = takerOrder.getRemainEntrustQty();
         }
         if (clinchQty.compareTo(BigDecimal.ZERO) == 0) {
-            return new MatchItemBO();
+            return null;
         }
 
         // minimum of clinch qty

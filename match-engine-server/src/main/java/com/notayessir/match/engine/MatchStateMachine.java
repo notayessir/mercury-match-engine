@@ -343,6 +343,7 @@ public class MatchStateMachine extends BaseStateMachine {
             }
             resultBO = orderBookBO.place(command);
         }
+        resultBO.setCoinId(command.getCoinId());
         resultBO.setGlobalSequence(++globalSequence);
         resultBO.setCommandType(command.getCommand());
         resultBO.setTimestamp(System.currentTimeMillis());
