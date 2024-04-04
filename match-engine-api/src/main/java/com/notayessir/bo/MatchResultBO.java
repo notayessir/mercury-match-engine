@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -26,7 +25,7 @@ public class MatchResultBO {
     private List<MatchItemBO> matchItems;
 
 
-    public BigDecimal addUpClinchQty(){
+    public BigDecimal gatherClinchQty(){
         BigDecimal qty = BigDecimal.ZERO;
         if (CollectionUtil.isEmpty(matchItems)){
             return qty;
@@ -37,7 +36,7 @@ public class MatchResultBO {
         return qty;
     }
 
-    public BigDecimal addUpClinchAmount(){
+    public BigDecimal gatherClinchAmount(){
         BigDecimal amount = BigDecimal.ZERO;
         if (CollectionUtil.isEmpty(matchItems)){
             return amount;

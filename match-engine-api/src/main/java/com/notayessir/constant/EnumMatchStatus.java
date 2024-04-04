@@ -11,15 +11,11 @@ public enum EnumMatchStatus {
      */
     CANCEL(-20),
 
-    /**
-     *
-     */
-    CLOSE(-10),
 
     /**
      * order now in order book
      */
-    OPEN(10),
+    NEW(10),
 
     /**
      * order fully fill

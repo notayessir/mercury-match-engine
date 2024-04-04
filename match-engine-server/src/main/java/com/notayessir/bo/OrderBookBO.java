@@ -80,7 +80,7 @@ public class OrderBookBO implements Serializable {
         if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0) {
             takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
         } else {
-            takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
+            takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
         }
 
         return MatchResultBO.builder()
@@ -190,7 +190,7 @@ public class OrderBookBO implements Serializable {
         if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
             takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
         } else {
-            takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
+            takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
         }
         return MatchResultBO.builder()
                 .matchItems(trades).takerOrder(takerOrder)
@@ -245,7 +245,7 @@ public class OrderBookBO implements Serializable {
         if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0){
             takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
         } else {
-            takerOrder.setMatchStatus(EnumMatchStatus.CLOSE.getStatus());
+            takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
         }
         return MatchResultBO.builder()
                 .matchItems(trades).takerOrder(takerOrder)
@@ -258,7 +258,7 @@ public class OrderBookBO implements Serializable {
         orderItemBO.setEntrustType(commandBO.getEntrustType());
         orderItemBO.setEntrustSide(commandBO.getEntrustSide());
         orderItemBO.setQuoteScale(commandBO.getQuoteScale());
-        orderItemBO.setMatchStatus(EnumMatchStatus.OPEN.getStatus());
+        orderItemBO.setMatchStatus(EnumMatchStatus.NEW.getStatus());
 
         orderItemBO.setEntrustPrice(commandBO.getEntrustPrice());
 

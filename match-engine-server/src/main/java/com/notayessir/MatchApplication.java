@@ -2,6 +2,8 @@
 package com.notayessir;
 
 import com.notayessir.config.AppConfiguration;
+import com.notayessir.config.RaftConfig;
+import com.notayessir.config.RaftServerConfiguration;
 import com.notayessir.constant.EnumServerMode;
 import com.notayessir.match.engine.MatchServer;
 import com.notayessir.match.engine.MatchServerConfig;
@@ -33,6 +35,9 @@ public class MatchApplication implements CommandLineRunner {
 	private AppConfiguration appConfiguration;
 
 	@Autowired
+	private RaftServerConfiguration raftServerConfiguration;
+
+	@Autowired
 	private KafkaPublisher kafkaPublisher;
 
 	@Autowired
@@ -47,56 +52,32 @@ public class MatchApplication implements CommandLineRunner {
 		if (appConfiguration.isLogEnable()){
 			publishers.add(logPublisher);
 		}
-		String raftGroupList = appConfiguration.getRaftGroupList();
-		String raftServerList = appConfiguration.getRaftServerList();
-		String[] serverConfigStr = raftServerList.split("\\|");
-		String[] groupArr = raftGroupList.split("\\|");
-		// check param
-		if (groupArr.length != serverConfigStr.length){
-			throw new RuntimeException("raftGroupList and raftServerList are not configured correctly.");
-		}
-		for (String serverConfigs : serverConfigStr) {
-			String[] serverConfig = serverConfigs.split(";");
-			if (serverConfig.length != 2){
-				throw new RuntimeException("server config should be 2, but found " + serverConfig.length);
-			}
-			String[] serverArr = serverConfig[0].split(",");
-			if (serverArr.length < 3){
-				throw new RuntimeException("server config should greater or equal to 3, but found " + serverArr.length);
+		List<RaftConfig> configs = raftServerConfiguration.getConfigs();
+		for (RaftConfig config : configs) {
+			if (config.getAddresses().size() < 3){
+				throw new RuntimeException("server config should greater or equal to 3, but found " + config.getAddresses().size());
 			}
 		}
 
-		// start server
-		String raftServerMode = appConfiguration.getRaftServerMode();
-		if (StringUtils.equalsIgnoreCase(raftServerMode, EnumServerMode.SINGLE.name())){
-			for (int i = 0; i < groupArr.length; i++) {
-				String groupId = groupArr[i];
-				String[] serverConfig = serverConfigStr[i].split(";");
-				String[] serverArr = serverConfig[0].split(",");
-				for (int j = 0; j < serverArr.length; j++) {
-					List<String> addresses = Arrays.asList(serverArr);
-					MatchServerConfig config = MatchServerConfig.builder()
-							.addresses(addresses).dirname(appConfiguration.getRaftStorageDir())
-							.groupId(groupId).index(j)
+		for (RaftConfig config : configs) {
+			if (StringUtils.equalsIgnoreCase(config.getMode(), EnumServerMode.SINGLE.name())){
+				for (int j = 0; j < config.getAddresses().size(); j++) {
+					MatchServerConfig serverConfig = MatchServerConfig.builder()
+							.addresses(config.getAddresses()).dirname(config.getStorage())
+							.groupId(config.getGroupId()).index(j)
 							.publishers(publishers)
 							.build();
-					MatchServer matchServer = new MatchServer(config);
+					MatchServer matchServer = new MatchServer(serverConfig);
 					matchServer.start();
 				}
-			}
-		} else {
-			// GROUP mode
-			for (int i = 0; i < groupArr.length; i++) {
-				String groupId = groupArr[i];
-				String[] serverConfig = serverConfigStr[i].split(";");
-				String[] serverArr = serverConfig[0].split(",");
-				List<String> addresses = Arrays.asList(serverArr);
-				MatchServerConfig config = MatchServerConfig.builder()
-						.addresses(addresses).dirname(appConfiguration.getRaftStorageDir())
-						.groupId(groupId).index(i)
+			}else {
+				// GROUP mode
+				MatchServerConfig serverConfig = MatchServerConfig.builder()
+						.addresses(config.getAddresses()).dirname(config.getStorage())
+						.groupId(config.getGroupId()).index(config.getIndex())
 						.publishers(publishers)
 						.build();
-				MatchServer matchServer = new MatchServer(config);
+				MatchServer matchServer = new MatchServer(serverConfig);
 				matchServer.start();
 			}
 		}

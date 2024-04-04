@@ -26,4 +26,8 @@ public enum EnumEntrustSide {
         return null;
     }
 
+    public static EnumEntrustSide reverseEntrustSide(int side){
+        return EnumEntrustSide.BUY.getCode() == side ?  EnumEntrustSide.SELL : EnumEntrustSide.BUY;
+    }
+
 }

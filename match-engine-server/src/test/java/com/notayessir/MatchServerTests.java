@@ -109,7 +109,7 @@ public class MatchServerTests {
         System.out.println(jsonString);
         MatchResultBO matchResultBO = JSONObject.parseObject(jsonString, MatchResultBO.class);
         OrderItemBO takerOrder = resultBO.getTakerOrder();
-        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CLOSE.getStatus());
+        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CANCEL.getStatus());
 
         List<MatchItemBO> matchItems = resultBO.getMatchItems();
     }
@@ -145,7 +145,7 @@ public class MatchServerTests {
         MatchResultBO resultBO = orderBookBO.place(command3);
 
         OrderItemBO takerOrder = resultBO.getTakerOrder();
-        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CLOSE.getStatus());
+        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CANCEL.getStatus());
 
     }
 
@@ -180,7 +180,7 @@ public class MatchServerTests {
         MatchResultBO resultBO = orderBookBO.place(command3);
 
         OrderItemBO takerOrder = resultBO.getTakerOrder();
-        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CLOSE.getStatus());
+        Assumptions.assumeTrue(takerOrder.getMatchStatus() == EnumMatchStatus.CANCEL.getStatus());
         Assumptions.assumeTrue(takerOrder.getRemainEntrustQty().compareTo(takerOrder.getEntrustQty()) == 0);
 
     }
