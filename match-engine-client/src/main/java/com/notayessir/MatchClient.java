@@ -2,6 +2,7 @@ package com.notayessir;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.notayessir.bo.MatchCommandBO;
+import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
@@ -20,14 +21,19 @@ import java.util.concurrent.CompletableFuture;
 public class MatchClient {
 
 
-    private final RaftClient client;
+    private RaftClient client;
+
+    private final MatchClientConfig config;
 
     public MatchClient(MatchClientConfig config) {
         if (Objects.isNull(config)){
             throw new RuntimeException("nullify config");
         }
         config.checkParam();
+        this.config = config;
+    }
 
+    public void connect(){
         List<String> addresses = config.getAddresses();
         String groupId = config.getGroupId();
 
@@ -37,18 +43,15 @@ public class MatchClient {
                     .setId("node" + i).setAddress(addresses.get(i)).build();
             peers.add(raftPeer);
         }
-
         RaftGroup raftGroup = RaftGroup
                 .valueOf(RaftGroupId.valueOf(UUID.fromString(groupId)), peers);
         RaftProperties raftProperties = new RaftProperties();
-
         client = RaftClient.newBuilder()
                 .setProperties(raftProperties)
                 .setClientRpc(new GrpcFactory(new Parameters())
                         .newRaftClientRpc(ClientId.randomId(), raftProperties))
                 .setRaftGroup(raftGroup)
                 .build();
-
     }
 
 
