@@ -345,7 +345,7 @@ public class MatchStateMachine extends BaseStateMachine {
         }
         resultBO.setCoinId(command.getCoinId());
         resultBO.setGlobalSequence(++globalSequence);
-        resultBO.setCommandType(command.getCommand());
+//        resultBO.setCommandType(command.getCommand());
         resultBO.setTimestamp(System.currentTimeMillis());
         return resultBO;
 

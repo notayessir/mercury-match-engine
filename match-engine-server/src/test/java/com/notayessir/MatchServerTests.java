@@ -50,7 +50,7 @@ public class MatchServerTests {
         BigDecimal entrustQty1 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount1 = entrustPrice1.multiply(entrustQty1);
         MatchCommandBO command1 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice1, entrustQty1, entrustAmount1,
-                 EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                 EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, 4, EnumMatchCommand.PLACE.getCode());
         MatchResultBO resultBO = orderBookBO.place(command1);
         Assumptions.assumeTrue(Objects.nonNull(resultBO.getTxSequence()));
 
@@ -59,7 +59,7 @@ public class MatchServerTests {
         BigDecimal entrustQty2 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount2 = entrustPrice2.multiply(entrustQty2);
         MatchCommandBO command2 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice2, entrustQty2, entrustAmount2,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, 4, EnumMatchCommand.PLACE.getCode());
         resultBO = orderBookBO.place(command2);
         Assumptions.assumeTrue(Objects.nonNull(resultBO.getTxSequence()));
 
@@ -68,7 +68,7 @@ public class MatchServerTests {
         BigDecimal entrustQty3 = BigDecimal.valueOf(30);
         BigDecimal entrustAmount3 = entrustPrice3.multiply(entrustQty3);
         MatchCommandBO command3 = new MatchCommandBO( EnumEntrustSide.BUY.getCode(), entrustPrice3, entrustQty3, entrustAmount3,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, 4, EnumMatchCommand.PLACE.getCode());
         resultBO = orderBookBO.place(command3);
         System.out.println(JSONObject.toJSONString(resultBO));
         OrderItemBO takerOrder = resultBO.getTakerOrder();
@@ -89,7 +89,7 @@ public class MatchServerTests {
         BigDecimal entrustQty1 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount1 = entrustPrice1.multiply(entrustQty1);
         MatchCommandBO command1 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice1, entrustQty1, entrustAmount1,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command1);
 
         // maker limit order 2
@@ -97,13 +97,13 @@ public class MatchServerTests {
         BigDecimal entrustQty2 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount2 = entrustPrice2.multiply(entrustQty2);
         MatchCommandBO command2 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice2, entrustQty2, entrustAmount2,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command2);
 
         // taker limit order 1
         BigDecimal entrustAmount3 = BigDecimal.valueOf(500);
         MatchCommandBO command3 = new MatchCommandBO( EnumEntrustSide.BUY.getCode(), BigDecimal.ZERO, BigDecimal.ZERO, entrustAmount3,
-                EnumEntrustType.MARKET.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.MARKET.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         MatchResultBO resultBO = orderBookBO.place(command3);
         String jsonString = JSON.toJSONString(resultBO);
         System.out.println(jsonString);
@@ -126,7 +126,7 @@ public class MatchServerTests {
         BigDecimal entrustQty1 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount1 = entrustPrice1.multiply(entrustQty1);
         MatchCommandBO command1 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice1, entrustQty1, entrustAmount1,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command1);
 
         // maker limit order 2
@@ -134,14 +134,14 @@ public class MatchServerTests {
         BigDecimal entrustQty2 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount2 = entrustPrice2.multiply(entrustQty2);
         MatchCommandBO command2 = new MatchCommandBO( EnumEntrustSide.SELL.getCode(), entrustPrice2, entrustQty2, entrustAmount2,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command2);
 
         // taker limit order 1
         BigDecimal entrustPrice3 = BigDecimal.valueOf(34);
         BigDecimal entrustQty3 = BigDecimal.valueOf(100);
         MatchCommandBO command3 = new MatchCommandBO(EnumEntrustSide.BUY.getCode(), entrustPrice3, entrustQty3, BigDecimal.ZERO,
-                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.IOC.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.IOC.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         MatchResultBO resultBO = orderBookBO.place(command3);
 
         OrderItemBO takerOrder = resultBO.getTakerOrder();
@@ -161,7 +161,7 @@ public class MatchServerTests {
         BigDecimal entrustQty1 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount1 = entrustPrice1.multiply(entrustQty1);
         MatchCommandBO command1 = new MatchCommandBO(EnumEntrustSide.SELL.getCode(), entrustPrice1, entrustQty1, entrustAmount1,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command1);
 
         // maker limit order 2
@@ -169,14 +169,14 @@ public class MatchServerTests {
         BigDecimal entrustQty2 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount2 = entrustPrice2.multiply(entrustQty2);
         MatchCommandBO command2 = new MatchCommandBO(EnumEntrustSide.SELL.getCode(), entrustPrice2, entrustQty2, entrustAmount2,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command2);
 
         // taker limit order 1
         BigDecimal entrustPrice3 = BigDecimal.valueOf(34);
         BigDecimal entrustQty3 = BigDecimal.valueOf(100);
         MatchCommandBO command3 = new MatchCommandBO(EnumEntrustSide.BUY.getCode(), entrustPrice3, entrustQty3, BigDecimal.ZERO,
-                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.FOK.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.FOK.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         MatchResultBO resultBO = orderBookBO.place(command3);
 
         OrderItemBO takerOrder = resultBO.getTakerOrder();
@@ -197,7 +197,7 @@ public class MatchServerTests {
         BigDecimal entrustQty1 = BigDecimal.valueOf(100);
         BigDecimal entrustAmount1 = entrustPrice1.multiply(entrustQty1);
         MatchCommandBO command1 = new MatchCommandBO(EnumEntrustSide.SELL.getCode(), entrustPrice1, entrustQty1, entrustAmount1,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, 4, EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command1);
 
         // maker limit order 2
@@ -205,14 +205,14 @@ public class MatchServerTests {
         BigDecimal entrustQty2 = BigDecimal.valueOf(20);
         BigDecimal entrustAmount2 = entrustPrice2.multiply(entrustQty2);
         MatchCommandBO command2 = new MatchCommandBO(EnumEntrustSide.SELL.getCode(), entrustPrice2, entrustQty2, entrustAmount2,
-                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.NORMAL_LIMIT.getType(), null, coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4,4,  EnumMatchCommand.PLACE.getCode());
         orderBookBO.place(command2);
 
         // taker limit order 1
         BigDecimal entrustPrice3 = BigDecimal.valueOf(33.33);
         BigDecimal entrustQty3 = BigDecimal.valueOf(100);
         MatchCommandBO command3 = new MatchCommandBO(EnumEntrustSide.BUY.getCode(), entrustPrice3, entrustQty3, BigDecimal.ZERO,
-                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.FOK.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, EnumMatchCommand.PLACE.getCode());
+                EnumEntrustType.PREMIUM_LIMIT.getType(), EnumEntrustProp.FOK.getType(), coinId, Math.abs(RandomUtil.randomLong()), Math.abs(RandomUtil.randomLong()), 4, 4, EnumMatchCommand.PLACE.getCode());
         MatchResultBO resultBO = orderBookBO.place(command3);
         System.out.println(JSONObject.toJSONString(resultBO));
         OrderItemBO takerOrder = resultBO.getTakerOrder();

@@ -19,7 +19,6 @@ public class MatchResultBO {
     private Long timestamp;
     private Long coinId;
 
-    private Integer commandType;
 
     private OrderItemBO takerOrder;
     private List<MatchItemBO> matchItems;

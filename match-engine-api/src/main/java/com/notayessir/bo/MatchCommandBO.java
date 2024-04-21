@@ -44,6 +44,7 @@ public class MatchCommandBO implements Serializable {
     private Long orderId;
 
     private int quoteScale;
+    private int baseScale;
     private Integer command;
 
 

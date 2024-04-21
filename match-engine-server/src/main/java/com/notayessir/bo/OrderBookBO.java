@@ -258,6 +258,7 @@ public class OrderBookBO implements Serializable {
         orderItemBO.setEntrustType(commandBO.getEntrustType());
         orderItemBO.setEntrustSide(commandBO.getEntrustSide());
         orderItemBO.setQuoteScale(commandBO.getQuoteScale());
+        orderItemBO.setBaseScale(commandBO.getBaseScale());
         orderItemBO.setMatchStatus(EnumMatchStatus.NEW.getStatus());
 
         orderItemBO.setEntrustPrice(commandBO.getEntrustPrice());

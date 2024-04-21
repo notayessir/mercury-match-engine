@@ -53,6 +53,7 @@ public class OrderItemBO implements Serializable {
 
 
     private Integer quoteScale;
+    private Integer baseScale;
 
     private Integer matchStatus;
 

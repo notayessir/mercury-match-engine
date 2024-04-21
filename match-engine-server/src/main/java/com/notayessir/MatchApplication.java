@@ -71,10 +71,14 @@ public class MatchApplication implements CommandLineRunner {
 					matchServer.start();
 				}
 			}else {
+				// locate the index of address
+				String targetAddress = config.getTargetAddress();
+				int index = config.getAddresses().indexOf(targetAddress);
+
 				// GROUP mode
 				MatchServerConfig serverConfig = MatchServerConfig.builder()
 						.addresses(config.getAddresses()).dirname(config.getStorage())
-						.groupId(config.getGroupId()).index(config.getIndex())
+						.groupId(config.getGroupId()).index(index)
 						.publishers(publishers)
 						.build();
 				MatchServer matchServer = new MatchServer(serverConfig);

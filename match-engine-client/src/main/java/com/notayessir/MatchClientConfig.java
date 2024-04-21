@@ -22,10 +22,10 @@ public class MatchClientConfig {
 
     public void checkParam() {
         if (CollectionUtil.isEmpty(addresses)){
-            throw new RuntimeException("addresses isn't provided");
+            throw new RuntimeException("addresses are not provided");
         }
         if (StringUtils.isBlank(groupId)){
-            throw new RuntimeException("groupId isn't provided");
+            throw new RuntimeException("groupId is not provided");
         }
     }
 }

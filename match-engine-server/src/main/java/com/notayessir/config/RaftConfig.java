@@ -24,7 +24,7 @@ public class RaftConfig {
     /**
      * when use 'single' mode, leave empty
      */
-    private Integer index;
+    private String targetAddress;
 
     /**
      * raft storage position
