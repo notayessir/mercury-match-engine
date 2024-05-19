@@ -96,22 +96,20 @@ CompletableFuture<RaftClientReply> sendAsync(MatchCommandBO command)
 #### Configuration File
 edit application.properties to meet your expectation.
 
-configure running mode:
+configure running mode and cluster：
 ```
-// single mode, all nodes are running in a same jvm process, mainly for test
-raft.server.mode=single
-// cluster mode, nodes are running in different jvm process, seperated physically
-raft.server.mode=group
-```
-
-configure engine cluster:
-```
-// claim cluster nodes, if there have multi clusters, use "|" to separate each cluster
-raft.server.list=127.0.0.1:18080,127.0.0.1:18081,127.0.0.1:18082;1| 
-// claim cluster id, use "|" to separate multi clusters, should correspond with raft.server.list
-raft.group.list=02511d47-d67c-49a3-9011-abb3109a44c1|  
-// raft log position
-raft.storage.dir=/Users/geek/Downloads/app/dir
+// 1. running mode：single or group
+// single：only for test, all nodes are running in a same process
+// group：for product, nodes are running in different processes
+raft.configs[0].mode=group|single
+// 2. group id
+raft.configs[0].groupId=02511d47-d67c-49a3-9011-abb3109a44c1
+// 3. raft group addresses, at least 3
+raft.configs[0].addresses=127.0.0.1:28080,127.0.0.1:28081,127.0.0.1:28082
+// 4. current running address
+raft.configs[0].targetAddress=127.0.0.1:28080
+// 5. raft log storage position
+raft.configs[0].storage=/Users/geek/IdeaProjects/mercury-match-engine/dir
 ```
 
 producer for match result:

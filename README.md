@@ -94,22 +94,20 @@ CompletableFuture<Long> sendAsync(MatchCommandBO command)
 #### 配置文件
 通过配置 application.properties 达到预期要求。
 
-撮合集群运行模式：
+集群运行方式及配置：
 ```
-// 单机模式，所有撮合节点运行在一个 Spring Boot 进程内
-raft.server.mode=single
-// 集群模式，撮合节点分布运行在多个 Spring Boot 进程内
-raft.server.mode=group
-```
-
-撮合集群配置：
-```
-// 撮合集群监听端口，若存在多个集群，用标识符 "|" 分开
-raft.server.list=127.0.0.1:18080,127.0.0.1:18081,127.0.0.1:18082;1| 
-// 撮合集群 id，若存在多个集群，用标识符 "|" 分开
-raft.group.list=02511d47-d67c-49a3-9011-abb3109a44c1|  
-// raft 日志存储绝对位置
-raft.storage.dir=/Users/geek/Downloads/app/dir
+// 1. 运行模式：single 或 group
+// single：单机模式，所有撮合节点运行在一个 Spring Boot 进程内
+// group：撮合节点分布运行在多个 Spring Boot 进程内
+raft.configs[0].mode=group|single
+// 2. 集群组 id
+raft.configs[0].groupId=02511d47-d67c-49a3-9011-abb3109a44c1
+// 3. 集群节点地址和端口，根据 Raft 协议，至少配置 3 个节点
+raft.configs[0].addresses=127.0.0.1:28080,127.0.0.1:28081,127.0.0.1:28082
+// 4. 当前节点运行的地址和端口
+raft.configs[0].targetAddress=127.0.0.1:28080
+// 5. raft 日志存储位置
+raft.configs[0].storage=/Users/geek/IdeaProjects/mercury-match-engine/dir
 ```
 
 撮合生产者：
