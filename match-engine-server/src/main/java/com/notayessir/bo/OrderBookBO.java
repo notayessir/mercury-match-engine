@@ -79,8 +79,17 @@ public class OrderBookBO implements Serializable {
                 priceMapIterator.remove();
             }
         }
-        // always cancel
+
         takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
+        if (takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()
+                && takerOrder.getRemainEntrustAmount().compareTo(takerOrder.getEntrustAmount()) != 0){
+            // buy
+            takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+        } if (takerOrder.getEntrustSide() == EnumEntrustSide.SELL.getCode()
+                && takerOrder.getRemainEntrustQty().compareTo(takerOrder.getEntrustQty()) != 0){
+            // sell
+            takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
+        }
 
         return MatchResultBO.builder()
                 .matchItems(trades).takerOrder(takerOrder)
@@ -304,8 +313,8 @@ public class OrderBookBO implements Serializable {
         BigDecimal makerEntrustPrice = makerOrder.getEntrustPrice();
         int quoteScale = takerOrder.getQuoteScale();
         BigDecimal clinchQty;
-        log.info("takerOrder:{}", JSONObject.toJSONString(takerOrder));
-        log.info("makerOrder:{}", JSONObject.toJSONString(makerOrder));
+//        log.info("takerOrder:{}", JSONObject.toJSONString(takerOrder));
+//        log.info("makerOrder:{}", JSONObject.toJSONString(makerOrder));
         if (takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType()
                 && takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()){
             clinchQty = takerOrder.getRemainEntrustAmount().divide(makerEntrustPrice, quoteScale, RoundingMode.DOWN);
