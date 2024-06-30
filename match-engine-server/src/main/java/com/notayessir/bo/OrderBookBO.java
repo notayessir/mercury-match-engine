@@ -1,10 +1,12 @@
 package com.notayessir.bo;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.notayessir.constant.EnumEntrustProp;
 import com.notayessir.constant.EnumEntrustSide;
 import com.notayessir.constant.EnumEntrustType;
 import com.notayessir.constant.EnumMatchStatus;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -12,7 +14,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-
+@Slf4j
 @Getter
 public class OrderBookBO implements Serializable {
 
@@ -77,11 +79,8 @@ public class OrderBookBO implements Serializable {
                 priceMapIterator.remove();
             }
         }
-        if (takerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0) {
-            takerOrder.setMatchStatus(EnumMatchStatus.FILLED.getStatus());
-        } else {
-            takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
-        }
+        // always cancel
+        takerOrder.setMatchStatus(EnumMatchStatus.CANCEL.getStatus());
 
         return MatchResultBO.builder()
                 .matchItems(trades).takerOrder(takerOrder)
@@ -261,11 +260,14 @@ public class OrderBookBO implements Serializable {
         orderItemBO.setBaseScale(commandBO.getBaseScale());
         orderItemBO.setMatchStatus(EnumMatchStatus.NEW.getStatus());
 
+        // entrust price
         orderItemBO.setEntrustPrice(commandBO.getEntrustPrice());
 
+        // entrust qty
         orderItemBO.setEntrustQty(commandBO.getEntrustQty());
         orderItemBO.setRemainEntrustQty(commandBO.getEntrustQty());
 
+        // entrust amount
         orderItemBO.setEntrustAmount(commandBO.getEntrustAmount());
         orderItemBO.setRemainEntrustAmount(commandBO.getEntrustAmount());
 
@@ -302,19 +304,22 @@ public class OrderBookBO implements Serializable {
         BigDecimal makerEntrustPrice = makerOrder.getEntrustPrice();
         int quoteScale = takerOrder.getQuoteScale();
         BigDecimal clinchQty;
-
+        log.info("takerOrder:{}", JSONObject.toJSONString(takerOrder));
+        log.info("makerOrder:{}", JSONObject.toJSONString(makerOrder));
         if (takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType()
                 && takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()){
             clinchQty = takerOrder.getRemainEntrustAmount().divide(makerEntrustPrice, quoteScale, RoundingMode.DOWN);
         } else {
             clinchQty = takerOrder.getRemainEntrustQty();
         }
+
         if (clinchQty.compareTo(BigDecimal.ZERO) == 0) {
             return null;
         }
 
         // minimum of clinch qty
         clinchQty = clinchQty.min(makerOrder.getRemainEntrustQty());
+
         takerOrder.setRemainEntrustQty(takerOrder.getRemainEntrustQty().subtract(clinchQty));
         makerOrder.setRemainEntrustQty(makerOrder.getRemainEntrustQty().subtract(clinchQty));
 
