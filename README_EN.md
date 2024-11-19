@@ -1,4 +1,7 @@
-[中文](README.md) | [English](README_EN.md)
+[中文](README.md) | 英文
+
+**The project is for learning purposes only and has no reference value for production use.**
+
 # Introduction
 ![process.png](asset%2Fprocess.png)
 

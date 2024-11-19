@@ -1,4 +1,7 @@
-[中文](README.md) | [English](README_EN.md)
+中文 | [English](README_EN.md)
+
+**学习用途，不具备投入生产的参考价值。**
+
 # 介绍
 
 ![process.png](asset%2Fprocess.png)
