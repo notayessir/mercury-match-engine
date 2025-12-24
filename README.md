@@ -1,6 +1,8 @@
 中文 | [English](README_EN.md)
 
-**学习用途，不具备投入生产的参考价值。**
+**仅作学习用途。**
+
+设计思路：[撮合引擎设计思路](https://github.com/notayessir/blog/blob/main/articles/2024-11-30-A-matching-engine.md)
 
 # 介绍
 
@@ -91,7 +93,7 @@ Long sendSync(MatchCommandBO command) throws Exception
 ```
 CompletableFuture<Long> sendAsync(MatchCommandBO command)
 ```
-# 详尽信息
+# 更多信息
 
 ## 服务端
 #### 配置文件
