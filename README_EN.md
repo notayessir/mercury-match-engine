@@ -1,6 +1,8 @@
 [中文](README.md) | 英文
 
-**The project is for learning purposes only and has no reference value for production use.**
+**The project is for learning purposes only.**
+
+design thinking: [a match engine](https://github.com/notayessir/blog/blob/main/articles/2024-11-30-A-matching-engine.md)
 
 # Introduction
 ![process.png](asset%2Fprocess.png)
