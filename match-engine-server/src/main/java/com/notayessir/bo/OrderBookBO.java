@@ -332,6 +332,11 @@ public class OrderBookBO implements Serializable {
         takerOrder.setRemainEntrustQty(takerOrder.getRemainEntrustQty().subtract(clinchQty));
         makerOrder.setRemainEntrustQty(makerOrder.getRemainEntrustQty().subtract(clinchQty));
 
+        // evict fully-filled maker from the id-index so cancel() cannot find a stale entry
+        if (makerOrder.getRemainEntrustQty().compareTo(BigDecimal.ZERO) == 0) {
+            orders.remove(makerOrder.getOrderId());
+        }
+
         // calc clinch amount
         if (takerOrder.getEntrustType() == EnumEntrustType.MARKET.getType()
                 && takerOrder.getEntrustSide() == EnumEntrustSide.BUY.getCode()){
